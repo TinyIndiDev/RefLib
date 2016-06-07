@@ -183,7 +183,7 @@ bool NetSocket::PostSend()
 
     size_t sendQueueSize = sendQueue.size();
     if (sendQueueSize == 0)
-        return;
+        return false;
 
     NetIoBuffer* sendOP = new NetIoBuffer();
     sendOP->SetSocket(GetSocket());

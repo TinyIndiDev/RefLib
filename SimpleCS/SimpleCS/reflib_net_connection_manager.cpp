@@ -48,9 +48,10 @@ void NetConnectionMgr::Shutdown()
 {
     SafeLock::Owner owner(_connLock);
 
-    for (auto conn : _netConns)
+    for (auto element : _netConns)
     {
-        g_network.Disconnect(conn.second->GetSocket(), NET_CTYPE_SHUTDOWN);
+        NetConnection* conn = element.second;
+        conn->Disconnect(NET_CTYPE_SHUTDOWN);
     }
 }
 

@@ -89,16 +89,16 @@ void NetWorkerServer::HandleIO(NetSocketBase* sockObj, NetCompletionOP* bufObj, 
 
     if (error != NO_ERROR)
     {
-        DebugPrint("OP = %d; Error = %d\n", bufObj->GetOP(), error);
+        sockObj->OnCompletionFailure(bufObj, bytesTransfered, error);
+    }
+    else
+    {
+        _bytesSent.fetch_add(bytesTransfered);
+        _bytesSentLast.fetch_add(bytesTransfered);
 
-        sockObj->DecOps();
-        return;
+        sockObj->OnCompletionSuccess(bufObj, bytesTransfered);
     }
 
-    _bytesSent.fetch_add(bytesTransfered);
-    _bytesSentLast.fetch_add(bytesTransfered);
-
-    sockObj->OnCompletion(bufObj, bytesTransfered);
     sockObj->DecOps();
 }
 

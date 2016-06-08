@@ -6,7 +6,8 @@
 namespace RefLib
 {
 
-struct AcceptBuffer;
+class AcceptBuffer;
+class NetCompletionOP;
 
 class NetworkAPI : public Singleton<NetworkAPI>
 {
@@ -20,11 +21,11 @@ public:
 
     bool Listen(SOCKET listenSock, const SOCKADDR_IN& saLocal);
     BOOL Accept(SOCKET listenSock, AcceptBuffer* acceptObj);
-    void Disconnect(SOCKET sock, NetCloseType closer);
+    void Disconnect(NetCompletionOP* bufObj, NetCloseType closer);
 
 private:
     bool InitNetworkExFns();
-    void DisconnectEx(SOCKET socket);
+    void DisconnectEx(NetCompletionOP* bufObj);
 
     LPFN_ACCEPTEX               _lpfnAcceptEx;
     LPFN_GETACCEPTEXSOCKADDRS   _lpfnGetAcceptExSockaddrs;

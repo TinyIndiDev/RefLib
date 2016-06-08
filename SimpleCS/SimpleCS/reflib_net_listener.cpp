@@ -68,19 +68,29 @@ bool NetListener::Listen(unsigned port)
     return true;
 }
 
-void NetListener::OnCompletion(NetCompletionOP* bufObj, DWORD bytesTransfered)
+void NetListener::OnCompletionFailure(NetCompletionOP* bufObj, DWORD bytesTransfered, int error)
+{
+    DebugPrint("OP = %d; Error = %d\n", bufObj->GetOP(), error);
+    return;
+}
+
+void NetListener::OnCompletionSuccess(NetCompletionOP* bufObj, DWORD bytesTransfered)
 {
     switch (bufObj->GetOP())
     {
     case NetCompletionOP::OP_ACCEPT:
         OnAccept(bufObj);
         break;
+    case NetCompletionOP::OP_CONNECT:
+        OnConnected();
+        break;
+    case NetCompletionOP::OP_DISCONNECT:
+        OnDisconnected();
+        break;
     default:
         REFLIB_ASSERT(false, "Invalid net op");
         break;
     }
-
-    DecOps();
 }
 
 void NetListener::OnAccept(NetCompletionOP* bufObj)
@@ -104,7 +114,7 @@ void NetListener::FreeNetConn(NetConnection* conn)
 
 void NetListener::Shutdown()
 {
-    g_network.Disconnect(GetSocket(), NET_CTYPE_SHUTDOWN);
+    Disconnect(NET_CTYPE_SHUTDOWN);
     _netConnMgr->Shutdown();
 }
 

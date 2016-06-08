@@ -22,7 +22,8 @@ public:
         _outstandingOps.fetch_sub(1);
     }
 
-    virtual void OnCompletion(NetCompletionOP* bufObj, DWORD bytesTransfered) = 0;
+    virtual void OnCompletionSuccess(NetCompletionOP* bufObj, DWORD bytesTransfered) = 0;
+    virtual void OnCompletionFailure(NetCompletionOP* bufObj, DWORD bytesTransfered, int error) = 0;
 
 private:
     std::atomic<long> _outstandingOps;

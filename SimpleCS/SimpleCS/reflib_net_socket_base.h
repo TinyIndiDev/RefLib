@@ -8,35 +8,30 @@ namespace RefLib
 {
 
 class MemoryBlock;
+class NetCompletionOP;
 
 class NetSocketBase : public NetCompletion
 {
 public:
-    enum NetStatus
-    {
-        NET_STATUS_DISCONNECTED,
-        NET_STATUS_CONNECTED,
-        NET_STATUS_CLOSING,
-    };
-
-    NetSocketBase()
-        : _socket(INVALID_SOCKET)
-        , _netStatus(NET_STATUS_DISCONNECTED) {}
+    NetSocketBase();
     virtual ~NetSocketBase() {}
-
-    bool IsValid() const { return _socket != INVALID_SOCKET; }
 
     SOCKET GetSocket() const { return _socket; }
     void SetSocket(SOCKET sock) { _socket.exchange(sock); }
 
-    int GetStatus() { return _netStatus; }
-    void SetNetStatus(NetStatus status) { _netStatus.exchange(status); }
-
+    void Connect();
     void Disconnect(NetCloseType closer);
+
+    virtual void OnConnected();
     virtual void OnDisconnected();
 
+protected:
+    std::atomic<int> _netStatus;
+
 private:
-    std::atomic<NetStatus> _netStatus;
+    NetCompletionOP* _connectOP;
+    NetCompletionOP* _disconnectOP;
+
     std::atomic<SOCKET> _socket;
 };
 

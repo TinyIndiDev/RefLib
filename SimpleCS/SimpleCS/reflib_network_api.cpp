@@ -168,7 +168,7 @@ BOOL NetworkAPI::Accept(SOCKET listenSock, AcceptBuffer* acceptObj)
     return _lpfnAcceptEx(
         listenSock,
         acceptObj->GetSocket(),
-        acceptObj->data,
+        acceptObj->GetData(),
         0,
         SOCKETADDR_BUFFER_SIZE,
         SOCKETADDR_BUFFER_SIZE,
@@ -177,8 +177,10 @@ BOOL NetworkAPI::Accept(SOCKET listenSock, AcceptBuffer* acceptObj)
         );
 }
 
-void NetworkAPI::Disconnect(SOCKET socket, NetCloseType closer)
+void NetworkAPI::Disconnect(NetCompletionOP* bufObj, NetCloseType closer)
 {
+    SOCKET socket = bufObj->GetSocket();
+
     if (socket == INVALID_SOCKET)
         return;
 
@@ -189,15 +191,17 @@ void NetworkAPI::Disconnect(SOCKET socket, NetCloseType closer)
     }
     else
     {
-        DisconnectEx(socket);
+        DisconnectEx(bufObj);
         closesocket(socket);
     }
 }
 
-void NetworkAPI::DisconnectEx(SOCKET socket)
+void NetworkAPI::DisconnectEx(NetCompletionOP* bufObj)
 {
+    SOCKET socket = bufObj->GetSocket();
+
     // TODO: use overlapped to support asynchronus operation
-    _lpfnDisconnectEx(socket, nullptr, 0, 0);
+    _lpfnDisconnectEx(socket, reinterpret_cast<LPOVERLAPPED>(bufObj), 0, 0);
 }
 
 } // namespace RefLib

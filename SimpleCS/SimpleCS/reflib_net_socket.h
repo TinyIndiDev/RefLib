@@ -46,15 +46,15 @@ public:
 
     void Send(char* data, uint32 dataLen);
 
+    virtual void OnCompletionSuccess(NetCompletionOP* bufObj, DWORD bytesTransfered) override;
+    virtual void OnCompletionFailure(NetCompletionOP* bufObj, DWORD bytesTransfered, int error) override;
+
+    virtual void OnConnected() override;
     virtual void OnDisconnected() override;
-    virtual void OnCompletion(NetCompletionOP* bufObj, DWORD bytesTransfered) override;
-
-    bool PostRecv();
-    bool PostSend();
-
-    void OnConnected();
 
 private:
+    bool PostRecv();
+    bool PostSend();
     void OnRecv(NetIoBuffer* recvOP, DWORD bytesTransfered);
     void OnSent(NetIoBuffer* sendOP, DWORD bytesTransfered);
 

@@ -23,7 +23,8 @@ public:
 
     void FreeNetConn(NetConnection* conn);
 
-    void OnCompletion(NetCompletionOP* bufObj, DWORD bytesTransfered) override;
+    virtual void OnCompletionSuccess(NetCompletionOP* bufObj, DWORD bytesTransfered) override;
+    virtual void OnCompletionFailure(NetCompletionOP* bufObj, DWORD bytesTransfered, int error) override;
 
 private:
     void OnAccept(NetCompletionOP* bufObj);

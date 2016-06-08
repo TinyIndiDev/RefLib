@@ -11,10 +11,9 @@ namespace RefLib
 class NetSocketBase;
 class NetConnection;
 
-struct AcceptBuffer : public NetCompletionOP
+class AcceptBuffer : public NetCompletionOP
 {
-    char data[SOCKETADDR_BUFFER_SIZE * 2];
-
+public:
     AcceptBuffer()
     {
         Reset();
@@ -23,8 +22,13 @@ struct AcceptBuffer : public NetCompletionOP
     void Reset()
     {
         NetCompletionOP::Reset();
-        memset(data, 0x00, SOCKETADDR_BUFFER_SIZE * 2);
+        memset(_data, 0x00, SOCKETADDR_BUFFER_SIZE * 2);
     }
+
+    char* GetData() { return &_data[0]; }
+
+private:
+    char _data[SOCKETADDR_BUFFER_SIZE * 2];
 };
 
 class NetAcceptor

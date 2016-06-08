@@ -23,9 +23,9 @@ public:
     enum NetOPType
     {
         OP_ACCEPT = 0,
+        OP_CONNECT,
         OP_READ,
         OP_WRITE,
-        OP_CONNECT,
         OP_DISCONNECT,
     };
 

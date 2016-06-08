@@ -31,21 +31,6 @@ bool NetSocket::Initialize(SOCKET sock)
     return true;
 }
 
-void NetSocket::OnConnected()
-{
-    SetNetStatus(NET_STATUS_CONNECTED);
-    PostRecv();
-}
-
-// TODO: This fn should be called when socket is actually closed.
-void NetSocket::OnDisconnected()
-{
-    NetSocketBase::OnDisconnected();
-
-    ClearRecvQueue();
-    ClearSendQueue();
-}
-
 void NetSocket::ClearRecvQueue()
 {
     SafeLock::Owner guard(_recvLock);
@@ -73,20 +58,37 @@ void NetSocket::Send(char* data, uint32 dataLen)
     // TODO: trigger PostSend
 }
 
-void NetSocket::OnCompletion(NetCompletionOP* bufObj, DWORD bytesTransfered)
+void NetSocket::OnCompletionFailure(NetCompletionOP* bufObj, DWORD bytesTransfered, int error)
+{
+    DebugPrint("OP = %d; Error = %d\n", bufObj->GetOP(), error);
+
+    switch (bufObj->GetOP())
+    {
+    case NetCompletionOP::OP_READ:
+    case NetCompletionOP::OP_WRITE:
+        delete bufObj;
+        break;
+    default:
+        REFLIB_ASSERT(false, "Invalid net op");
+        break;
+    }
+    return;
+}
+
+void NetSocket::OnCompletionSuccess(NetCompletionOP* bufObj, DWORD bytesTransfered)
 {
     NetIoBuffer *ioBuffer = reinterpret_cast<NetIoBuffer*>(bufObj);
 
     switch (ioBuffer->GetOP())
     {
+    case NetCompletionOP::OP_CONNECT:
+        OnConnected();
+        break;
     case NetCompletionOP::OP_READ:
         OnRecv(ioBuffer, bytesTransfered);
         break;
     case NetCompletionOP::OP_WRITE:
         OnSent(ioBuffer, bytesTransfered);
-        break;
-    case NetCompletionOP::OP_CONNECT:
-        OnConnected();
         break;
     case NetCompletionOP::OP_DISCONNECT:
         OnDisconnected();
@@ -95,12 +97,26 @@ void NetSocket::OnCompletion(NetCompletionOP* bufObj, DWORD bytesTransfered)
         REFLIB_ASSERT(false, "Invalid net op");
         break;
     }
+}
 
-    DecOps();
+void NetSocket::OnConnected()
+{
+    NetSocketBase::OnConnected();
+    PostRecv();
+}
+
+// TODO: This fn should be called when socket is actually closed.
+void NetSocket::OnDisconnected()
+{
+    NetSocketBase::OnDisconnected();
+    ClearRecvQueue();
+    ClearSendQueue();
 }
 
 bool NetSocket::PostRecv()
 {
+    _netStatus.fetch_or(NET_STATUS_RECV);
+
     NetIoBuffer* recvOP = new NetIoBuffer();
     recvOP->SetSocket(GetSocket());
     recvOP->SetOP(NetCompletionOP::OP_READ);
@@ -121,7 +137,7 @@ bool NetSocket::PostRecv()
         &flags,
         reinterpret_cast<WSAOVERLAPPED*>(recvOP),
         NULL
-        );
+    );
 
     if (rc == SOCKET_ERROR)
     {
@@ -159,19 +175,22 @@ void NetSocket::OnRecv(NetIoBuffer* recvOP, DWORD bytesTransfered)
     }
 
     delete recvOP;
+    _netStatus.fetch_and(~NET_STATUS_RECV);
 
     PostRecv();
 }
 
 bool NetSocket::PostSend()
 {
+    _netStatus.fetch_or(NET_STATUS_SEND);
+
     std::list<MemoryBlock*> sendQueue;
     unsigned sendPacketSize = 0;
     unsigned idx = 0;
     MemoryBlock* buffer = nullptr;
 
-    while (!_sendPendingQueue.empty() 
-        && (idx < MAX_SEND_ARRAY_SIZE) 
+    while (!_sendPendingQueue.empty()
+        && (idx < MAX_SEND_ARRAY_SIZE)
         && (sendPacketSize < MAX_SOCKET_BUFFER_SIZE))
     {
         _sendPendingQueue.try_pop(buffer);
@@ -209,7 +228,7 @@ bool NetSocket::PostSend()
         0,
         reinterpret_cast<LPOVERLAPPED>(sendOP),
         NULL
-        );
+    );
 
     if (rc == SOCKET_ERROR)
     {
@@ -232,6 +251,7 @@ bool NetSocket::PostSend()
 void NetSocket::OnSent(NetIoBuffer* sendOP, DWORD bytesTransfered)
 {
     delete sendOP;
+    _netStatus.fetch_and(~NET_STATUS_SEND);
 
     PostSend();
 }

@@ -14,8 +14,8 @@
 
 #define NET_STATUS_DISCONNECTED 0
 #define NET_STATUS_CONNECTED    1
-#define NET_STATUS_RECV         (1 << 1)
-#define NET_STATUS_SEND         (1 << 2)
+#define NET_STATUS_RECV_PENDING (1 << 1)
+#define NET_STATUS_SEND_PENDING (1 << 2)
 #define NET_STATUS_CLOSING      (1 << 3)
 
 enum NetCloseType

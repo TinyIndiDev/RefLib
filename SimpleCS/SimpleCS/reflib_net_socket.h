@@ -53,14 +53,17 @@ public:
     virtual void OnDisconnected() override;
 
 private:
-    bool PostRecv();
+    void PrepareSend();
     bool PostSend();
-    void OnRecv(NetIoBuffer* recvOP, DWORD bytesTransfered);
     void OnSent(NetIoBuffer* sendOP, DWORD bytesTransfered);
+
+    bool PostRecv();
+    void OnRecv(NetIoBuffer* recvOP, DWORD bytesTransfered);
 
     void ClearRecvQueue();
     void ClearSendQueue();
 
+    Concurrency::concurrent_queue<MemoryBlock*> _sendQueue;
     Concurrency::concurrent_queue<MemoryBlock*> _sendPendingQueue;
 
     CircularBuffer  _recvBuffer;

@@ -11,7 +11,7 @@ namespace RefLib
 {
 
 /////////////////////////////////////////////////////////////////////
-// NetSocket
+// NetIoBuffer
 
 NetIoBuffer::~NetIoBuffer()
 {
@@ -22,6 +22,9 @@ NetIoBuffer::~NetIoBuffer()
         g_memoryPool.FreeBuffer(buffer);
     }
 }
+
+/////////////////////////////////////////////////////////////////////
+// NetSocket
 
 bool NetSocket::Initialize(SOCKET sock) 
 { 
@@ -46,6 +49,56 @@ void NetSocket::ClearSendQueue()
     {
         SAFE_DELETE(buffer);
     }
+
+    REFLIB_ASSERT(_sendQueue.empty(), "Send queue is not empty");
+    while (_sendQueue.try_pop(buffer))
+    {
+        SAFE_DELETE(buffer);
+    }
+}
+
+bool NetSocket::PostRecv()
+{
+    _netStatus.fetch_or(NET_STATUS_RECV_PENDING);
+
+    NetIoBuffer* recvOP = new NetIoBuffer();
+    recvOP->SetSocket(GetSocket());
+    recvOP->SetOP(NetCompletionOP::OP_READ);
+
+    MemoryBlock* buffer = g_memoryPool.GetBuffer(MAX_PACKET_SIZE);
+    recvOP->PushData(buffer);
+
+    WSABUF wbuf;
+    wbuf.buf = buffer->GetData();
+    wbuf.len = buffer->GetDataLen();
+
+    DWORD flags;
+    int rc = WSARecv(
+        GetSocket(),
+        &wbuf,
+        1,
+        NULL,
+        &flags,
+        reinterpret_cast<WSAOVERLAPPED*>(recvOP),
+        NULL
+    );
+
+    if (rc == SOCKET_ERROR)
+    {
+        if (WSAGetLastError() != WSA_IO_PENDING)
+        {
+            DebugPrint("PostRecv: WSARecv* failed: %s", SocketGetLastErrorString());
+            Disconnect(NET_CTYPE_SYSTEM);
+            delete recvOP;
+
+            return false;
+        }
+    }
+
+    // Increment the outstanding operation count
+    IncOps();
+
+    return true;
 }
 
 void NetSocket::Send(char* data, uint32 dataLen)
@@ -55,7 +108,84 @@ void NetSocket::Send(char* data, uint32 dataLen)
 
     _sendPendingQueue.push(buffer);
 
-    // TODO: trigger PostSend
+    PrepareSend();
+}
+
+void NetSocket::PrepareSend()
+{
+    unsigned sendPacketSize = 0;
+    MemoryBlock* buffer = nullptr;
+
+    while (!_sendPendingQueue.empty()
+        && (_sendQueue.unsafe_size() < MAX_SEND_ARRAY_SIZE)
+        && (sendPacketSize < MAX_SOCKET_BUFFER_SIZE))
+    {
+        _sendPendingQueue.try_pop(buffer);
+        _sendQueue.push(buffer);
+
+        sendPacketSize += buffer->GetDataLen();
+    }
+
+    if (sendPacketSize > 0)
+        PostSend();
+}
+
+bool NetSocket::PostSend()
+{
+    int status = _netStatus.load();
+    int expected = status | (NET_STATUS_CONNECTED) & (~NET_STATUS_SEND_PENDING) & (~NET_STATUS_CLOSING);
+    int desired = expected | NET_STATUS_SEND_PENDING;
+
+    if (!_netStatus.compare_exchange_weak(expected, desired))
+        return false;
+
+    size_t sendQueueSize = _sendQueue.unsafe_size();
+    if (sendQueueSize == 0)
+        return false;
+
+    NetIoBuffer* sendOP = new NetIoBuffer();
+    sendOP->SetSocket(GetSocket());
+    sendOP->SetOP(NetCompletionOP::OP_WRITE);
+
+    std::vector<WSABUF> wbufs;
+    wbufs.reserve(sendQueueSize);
+
+    MemoryBlock* buffer = nullptr;
+    int idx = 0;
+    while (_sendQueue.try_pop(buffer))
+    {
+        wbufs[idx].buf = buffer->GetData();
+        wbufs[idx].len = buffer->GetDataLen();
+        sendOP->PushData(buffer);
+        idx++;
+    }
+
+    int rc = WSASend(
+        GetSocket(),
+        &(wbufs[0]),
+        static_cast<DWORD>(wbufs.size()),
+        NULL,
+        0,
+        reinterpret_cast<LPOVERLAPPED>(sendOP),
+        NULL
+    );
+
+    if (rc == SOCKET_ERROR)
+    {
+        if (WSAGetLastError() != WSA_IO_PENDING)
+        {
+            DebugPrint("PostSend: WSASend* failed: %s", SocketGetLastErrorString());
+            Disconnect(NET_CTYPE_SYSTEM);
+            delete sendOP;
+
+            return false;
+        }
+    }
+
+    // Increment the outstanding operation count
+    IncOps();
+
+    return true;
 }
 
 void NetSocket::OnCompletionFailure(NetCompletionOP* bufObj, DWORD bytesTransfered, int error)
@@ -105,58 +235,6 @@ void NetSocket::OnConnected()
     PostRecv();
 }
 
-// TODO: This fn should be called when socket is actually closed.
-void NetSocket::OnDisconnected()
-{
-    NetSocketBase::OnDisconnected();
-    ClearRecvQueue();
-    ClearSendQueue();
-}
-
-bool NetSocket::PostRecv()
-{
-    _netStatus.fetch_or(NET_STATUS_RECV);
-
-    NetIoBuffer* recvOP = new NetIoBuffer();
-    recvOP->SetSocket(GetSocket());
-    recvOP->SetOP(NetCompletionOP::OP_READ);
-
-    MemoryBlock* buffer = g_memoryPool.GetBuffer(MAX_PACKET_SIZE);
-    recvOP->PushData(buffer);
-
-    WSABUF wbuf;
-    wbuf.buf = buffer->GetData();
-    wbuf.len = buffer->GetDataLen();
-
-    DWORD flags;
-    int rc = WSARecv(
-        GetSocket(),
-        &wbuf,
-        1,
-        NULL,
-        &flags,
-        reinterpret_cast<WSAOVERLAPPED*>(recvOP),
-        NULL
-    );
-
-    if (rc == SOCKET_ERROR)
-    {
-        if (WSAGetLastError() != WSA_IO_PENDING)
-        {
-            DebugPrint("PostRecv: WSARecv* failed: %s", SocketGetLastErrorString());
-            Disconnect(NET_CTYPE_SYSTEM);
-            delete recvOP;
-
-            return false;
-        }
-    }
-
-    // Increment the outstanding operation count
-    IncOps();
-
-    return true;
-}
-
 void NetSocket::OnRecv(NetIoBuffer* recvOP, DWORD bytesTransfered)
 {
     REFLIB_ASSERT_RETURN_IF_FAILED(recvOP, "NetIoBuffer is null");
@@ -175,85 +253,25 @@ void NetSocket::OnRecv(NetIoBuffer* recvOP, DWORD bytesTransfered)
     }
 
     delete recvOP;
-    _netStatus.fetch_and(~NET_STATUS_RECV);
+    _netStatus.fetch_and(~NET_STATUS_RECV_PENDING);
 
     PostRecv();
-}
-
-bool NetSocket::PostSend()
-{
-    _netStatus.fetch_or(NET_STATUS_SEND);
-
-    std::list<MemoryBlock*> sendQueue;
-    unsigned sendPacketSize = 0;
-    unsigned idx = 0;
-    MemoryBlock* buffer = nullptr;
-
-    while (!_sendPendingQueue.empty()
-        && (idx < MAX_SEND_ARRAY_SIZE)
-        && (sendPacketSize < MAX_SOCKET_BUFFER_SIZE))
-    {
-        _sendPendingQueue.try_pop(buffer);
-        sendQueue.push_back(buffer);
-
-        sendPacketSize += buffer->GetDataLen();
-        idx++;
-    }
-
-    size_t sendQueueSize = sendQueue.size();
-    if (sendQueueSize == 0)
-        return false;
-
-    NetIoBuffer* sendOP = new NetIoBuffer();
-    sendOP->SetSocket(GetSocket());
-    sendOP->SetOP(NetCompletionOP::OP_WRITE);
-
-    std::vector<WSABUF> wbufs;
-    wbufs.reserve(sendQueueSize);
-    idx = 0;
-    for (auto element : sendQueue)
-    {
-        wbufs[idx].buf = buffer->GetData();
-        wbufs[idx].len = buffer->GetDataLen();
-        sendOP->PushData(buffer);
-        idx++;
-    }
-    sendQueue.clear();
-
-    int rc = WSASend(
-        GetSocket(),
-        &(wbufs[0]),
-        static_cast<DWORD>(wbufs.size()),
-        NULL,
-        0,
-        reinterpret_cast<LPOVERLAPPED>(sendOP),
-        NULL
-    );
-
-    if (rc == SOCKET_ERROR)
-    {
-        if (WSAGetLastError() != WSA_IO_PENDING)
-        {
-            DebugPrint("PostSend: WSASend* failed: %s", SocketGetLastErrorString());
-            Disconnect(NET_CTYPE_SYSTEM);
-            delete sendOP;
-
-            return false;
-        }
-    }
-
-    // Increment the outstanding operation count
-    IncOps();
-
-    return true;
 }
 
 void NetSocket::OnSent(NetIoBuffer* sendOP, DWORD bytesTransfered)
 {
     delete sendOP;
-    _netStatus.fetch_and(~NET_STATUS_SEND);
+    _netStatus.fetch_and(~NET_STATUS_SEND_PENDING);
 
-    PostSend();
+    PrepareSend();
+}
+
+// TODO: This fn should be called when socket is actually closed.
+void NetSocket::OnDisconnected()
+{
+    NetSocketBase::OnDisconnected();
+    ClearRecvQueue();
+    ClearSendQueue();
 }
 
 } // namespace RefLib

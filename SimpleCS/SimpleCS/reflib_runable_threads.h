@@ -21,6 +21,7 @@ public:
 
 protected:
     bool CreateThreads(unsigned threadCnt);
+    bool CreateThreads(unsigned threadCnt, unsigned(__stdcall *ThreadProc)(void *));
 
     virtual bool OnTimeout();
     virtual bool OnTerminated();

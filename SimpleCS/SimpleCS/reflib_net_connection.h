@@ -1,36 +1,35 @@
 #pragma once
 
 #include "reflib_net_socket.h"
+#include "reflib_composit_id.h"
 
 namespace RefLib
 {
 
 class NetListener;
+class GameObj;
 
 class NetConnection : public NetSocket
 {
 public:
     NetConnection(uint32 id, uint32 salt)
-        : _id(id)
-        , _salt(salt)
+        : _id(id, salt)
     {
     }
 
-    uint64 GetConId() { return (_id << 16 | _salt); }
+    uint64 GetConId() { return _id.GetCompId(); }
 
     // call when NetConnection is reused.
     void IncSalt()
     {
-        _salt = (_salt + 1) % MAXUINT32;
+        _id.IncSalt();
     }
 
     bool Initialize(SOCKET sock, NetListener* netListener);
     virtual void OnDisconnected() override;
 
 private:
-    uint32 _id;
-    uint32 _salt;
-
+    CompositId _id;
     NetListener* _container;
 };
 

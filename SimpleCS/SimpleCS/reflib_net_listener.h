@@ -10,11 +10,12 @@ class NetAcceptor;
 class NetConnection;
 class NetConnectionMgr;
 class NetCompletionOP;
+class GameObjMgr;
 
 class NetListener : public NetSocketBase
 {
 public:
-    NetListener();
+    NetListener(GameObjMgr* gameObjMgr);
     ~NetListener();
 
     bool Initialize(unsigned reserve);
@@ -29,6 +30,7 @@ public:
 private:
     void OnAccept(NetCompletionOP* bufObj);
 
+    GameObjMgr*         _gameObjMgr;
     NetConnectionMgr*   _netConnMgr;
     NetAcceptor*        _acceptor;
 };

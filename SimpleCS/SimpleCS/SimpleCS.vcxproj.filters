@@ -96,6 +96,18 @@
     <ClInclude Include="reflib_net_overlapped.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="reflib_packet_obj.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="reflib_composit_id.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="reflib_game_obj_manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="reflib_game_obj.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -153,6 +165,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="reflib_net_connection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="reflib_game_obj_manager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="reflib_game_obj.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

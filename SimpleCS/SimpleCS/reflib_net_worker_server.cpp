@@ -12,10 +12,8 @@ NetWorkerServer::NetWorkerServer()
 {
 }
 
-bool NetWorkerServer::Initialize()
+bool NetWorkerServer::Initialize(unsigned int concurrency)
 {
-    SYSTEM_INFO sysInfo;
-
     _completionPort = g_network.GetCompletionPort();
     if (_completionPort == INVALID_HANDLE_VALUE)
     {
@@ -23,11 +21,7 @@ bool NetWorkerServer::Initialize()
         return false;
     }
 
-    GetSystemInfo(&sysInfo);
-    if (sysInfo.dwNumberOfProcessors > NETWORK_MAX_COMPLETION_THREAD_COUNT)
-        sysInfo.dwNumberOfProcessors = NETWORK_MAX_COMPLETION_THREAD_COUNT;
-
-    if (!CreateThreads(sysInfo.dwNumberOfProcessors))
+    if (!CreateThreads(concurrency))
         return false;
 
     NetProfiler::StartProfile();

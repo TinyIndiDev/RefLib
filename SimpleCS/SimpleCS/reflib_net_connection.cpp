@@ -2,6 +2,7 @@
 
 #include "reflib_net_connection.h"
 #include "reflib_net_listener.h"
+#include "reflib_game_obj.h"
 
 namespace RefLib
 {

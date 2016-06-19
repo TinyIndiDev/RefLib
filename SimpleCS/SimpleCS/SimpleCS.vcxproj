@@ -145,7 +145,10 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="reflib_game_obj.h" />
+    <ClInclude Include="reflib_game_obj_manager.h" />
     <ClInclude Include="reflib_circular_buffer.h" />
+    <ClInclude Include="reflib_composit_id.h" />
     <ClInclude Include="reflib_memory_block.h" />
     <ClInclude Include="reflib_memory_pool.h" />
     <ClInclude Include="reflib_network_api.h" />
@@ -164,6 +167,7 @@
     <ClInclude Include="reflib_net_util.h" />
     <ClInclude Include="reflib_net_worker_server.h" />
     <ClInclude Include="reflib_non_copyable.h" />
+    <ClInclude Include="reflib_packet_obj.h" />
     <ClInclude Include="reflib_runable_threads.h" />
     <ClInclude Include="reflib_safelock.h" />
     <ClInclude Include="reflib_singleton.h" />
@@ -173,6 +177,8 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="reflib_game_obj.cpp" />
+    <ClCompile Include="reflib_game_obj_manager.cpp" />
     <ClCompile Include="iocp_server.cpp" />
     <ClCompile Include="reflib_circular_buffer.cpp" />
     <ClCompile Include="reflib_memory_block.cpp" />

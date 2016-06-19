@@ -18,7 +18,7 @@ public:
     NetWorkerServer();
     virtual ~NetWorkerServer() {}
 
-    virtual bool Initialize();
+    virtual bool Initialize(unsigned int concurrency);
 
 protected:
     // run by thread

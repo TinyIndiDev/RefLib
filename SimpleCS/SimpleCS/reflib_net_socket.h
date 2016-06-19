@@ -10,6 +10,8 @@
 namespace RefLib
 {
 
+class GameObj;
+
 class NetIoBuffer : public NetCompletionOP
 {
 public:
@@ -39,12 +41,13 @@ private:
 class NetSocket : public NetSocketBase
 {
 public:
-    NetSocket() {}
+    NetSocket();
     virtual ~NetSocket() {}
 
     bool Initialize(SOCKET sock);
 
-    void Send(char* data, uint32 dataLen);
+    void SetParent(GameObj* parent);
+    void Send(char* data, uint16 dataLen);
 
     virtual void OnCompletionSuccess(NetCompletionOP* bufObj, DWORD bytesTransfered) override;
     virtual void OnCompletionFailure(NetCompletionOP* bufObj, DWORD bytesTransfered, int error) override;
@@ -63,11 +66,17 @@ private:
     void ClearRecvQueue();
     void ClearSendQueue();
 
+    void OnRecvData(const char* data, int dataLen);
+    MemoryBlock* ExtractPakcetData(bool& error);
+    bool CheckPacketData(char* blob, unsigned int len, uint16& contentLen, bool& error);
+
     Concurrency::concurrent_queue<MemoryBlock*> _sendQueue;
     Concurrency::concurrent_queue<MemoryBlock*> _sendPendingQueue;
 
     CircularBuffer  _recvBuffer;
     SafeLock        _recvLock;
+
+    GameObj*        _parent;
 };
 
 } // namespace RefLib

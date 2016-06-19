@@ -19,26 +19,6 @@ CircularBuffer::~CircularBuffer()
     SAFE_DELETE_ARRAY(_buffer);
 }
 
-char CircularBuffer::GetStartData()
-{
-    return _buffer[_headPos];
-}
-
-char CircularBuffer::GetEndData()
-{
-    return (_tailPos > 0) ? _buffer[_tailPos - 1] : _buffer[_bufSize - 1];
-}
-
-char CircularBuffer::GetData(int offset)
-{
-    return _buffer[(_headPos + offset) % _bufSize];
-}
-
-void CircularBuffer::GetData(char *pData, int len)
-{
-    GetData(pData, len, 0);
-}
-
 void CircularBuffer::GetData(char *pData, int len, unsigned int offset)
 {
     unsigned int localHeadPos = (_headPos + offset) % _bufSize;
@@ -60,26 +40,26 @@ void CircularBuffer::GetData(char *pData, int len, unsigned int offset)
     }
 }
 
-char* CircularBuffer::GetDataSegment(unsigned int &len, unsigned int sizeLimit)
+void CircularBuffer::GetLinearData(char* data, unsigned int& len, unsigned int sizeLimit)
 {
     if (_headPos == _tailPos)
     {
         len = 0;
-        return 0;
+        data = nullptr;
     }
     else if (_headPos < _tailPos)
     {
         len = _tailPos - _headPos;
         if (len > sizeLimit) 
             len = sizeLimit;
-        return _buffer + _headPos;
+        data = _buffer + _headPos;
     }
     else
     {
         len = _bufSize - _headPos;
         if (len > sizeLimit) 
             len = sizeLimit;
-        return _buffer + _headPos;
+        data = _buffer + _headPos;
     }
 }
 
@@ -152,20 +132,6 @@ void CircularBuffer::SetCapacity(unsigned int size)
 
         _buffer = newData;
         _bufSize = size;
-    }
-}
-
-bool CircularBuffer::HeadIncrease(unsigned int increasement)
-{
-    if (increasement <= Size())
-    {
-        _headPos += increasement;
-        _headPos %= _bufSize;
-        return true;
-    }
-    else
-    {
-        return false;
     }
 }
 

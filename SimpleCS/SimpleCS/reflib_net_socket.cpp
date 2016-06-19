@@ -6,6 +6,8 @@
 #include "reflib_net_listener.h"
 #include "reflib_memory_pool.h"
 #include "reflib_util.h"
+#include "reflib_packet_obj.h"
+#include "reflib_game_obj.h"
 
 namespace RefLib
 {
@@ -26,12 +28,23 @@ NetIoBuffer::~NetIoBuffer()
 /////////////////////////////////////////////////////////////////////
 // NetSocket
 
+NetSocket::NetSocket()
+    : _parent(nullptr)
+{
+
+}
+
 bool NetSocket::Initialize(SOCKET sock) 
 { 
     REFLIB_ASSERT_RETURN_VAL_IF_FAILED(sock != INVALID_SOCKET, "Socket is invalid", false);
     NetSocketBase::SetSocket(sock);
 
     return true;
+}
+
+void NetSocket::SetParent(GameObj* parent)
+{
+    _parent = parent;
 }
 
 void NetSocket::ClearRecvQueue()
@@ -101,10 +114,110 @@ bool NetSocket::PostRecv()
     return true;
 }
 
-void NetSocket::Send(char* data, uint32 dataLen)
+void NetSocket::OnRecvData(const char* data, int dataLen)
 {
-    MemoryBlock* buffer = g_memoryPool.GetBuffer(dataLen);
-    memcpy(buffer->GetData(), data, dataLen);
+    REFLIB_ASSERT_RETURN_IF_FAILED(data, "null data received.");
+    REFLIB_ASSERT_RETURN_IF_FAILED(dataLen, "null size data received.");
+    REFLIB_ASSERT_RETURN_IF_FAILED(_parent, "No game object assigned.");
+
+    SafeLock::Owner guard(_recvLock);
+
+    _recvBuffer.PutData(data, dataLen);
+
+    MemoryBlock* buffer = nullptr;
+    bool error;
+
+    while ((buffer = ExtractPakcetData(error)))
+    {
+        if (error)
+        {
+            Disconnect(NET_CTYPE_SYSTEM);
+            break;
+        }
+        _parent->RecvPacket(buffer);
+    }
+}
+
+bool NetSocket::CheckPacketData(char* blob, unsigned int len, uint16& contentLen, bool& error)
+{
+    PacketObj obj;
+
+    if (!obj.ReadHeader(blob, len))
+        return false;
+
+    if (!obj.IsValidEnvTag())
+    {
+        DebugPrint("Received data is corrupted");
+        error = true;
+        return false;
+    }
+
+    contentLen = obj.GetContentLen();
+    if (contentLen > len)
+        return false;
+
+    if (contentLen > MAX_PACKET_CONTENT_SIZE)
+    {
+        error = true;
+        return false;
+    }
+
+    return true;
+}
+
+MemoryBlock* NetSocket::ExtractPakcetData(bool& error)
+{
+    error = false;
+
+    unsigned int len = _recvBuffer.Size();
+    if (len == 0)
+        return nullptr;
+
+    MemoryBlock* buffer = nullptr;
+    char* blob = nullptr;
+    bool isOverlapped = _recvBuffer.IsOverlapped();
+
+    if (!isOverlapped)
+    {
+        unsigned int linearLen;
+        _recvBuffer.GetLinearData(blob, linearLen, MAX_PACKET_SIZE);
+        REFLIB_ASSERT_RETURN_VAL_IF_FAILED(!blob || len != linearLen, "Circulur buffer logic error", false);
+
+        uint16 contentLen;
+        if (!CheckPacketData(blob, len, contentLen, error))
+            return nullptr;
+
+        buffer = g_memoryPool.GetBuffer(contentLen);
+        memcpy(buffer->GetData(), blob + PacketObj::GetHeaderSize(), contentLen);
+    }
+    else
+    {
+        buffer = g_memoryPool.GetBuffer(len);
+
+        blob = buffer->GetData();
+        _recvBuffer.GetData(blob, len);
+
+        uint16 contentLen;
+        if (!CheckPacketData(blob, len, contentLen, error))
+        {
+            g_memoryPool.FreeBuffer(buffer);
+            return nullptr;
+        }
+
+        buffer->Resize(contentLen);
+    }
+
+    return buffer;
+}
+
+void NetSocket::Send(char* data, uint16 dataLen)
+{
+    PacketObj packet;
+    packet.SetHeader(dataLen);
+
+    MemoryBlock* buffer = g_memoryPool.GetBuffer(dataLen + packet.GetHeaderSize());
+    memcpy(buffer->GetData(), &packet.header, packet.GetHeaderSize());
+    memcpy(buffer->GetData() + packet.GetHeaderSize(), data, dataLen);
 
     _sendPendingQueue.push(buffer);
 
@@ -242,10 +355,7 @@ void NetSocket::OnRecv(NetIoBuffer* recvOP, DWORD bytesTransfered)
     MemoryBlock* buffer = nullptr;
     if (recvOP->PopData(buffer))
     {
-        SafeLock::Owner guard(_recvLock);
-        _recvBuffer.PutData(buffer->GetData(), bytesTransfered);
-
-        // Trigger reading data from business logic.
+        OnRecvData(buffer->GetData(), bytesTransfered);
     }
     else
     {
@@ -266,7 +376,6 @@ void NetSocket::OnSent(NetIoBuffer* sendOP, DWORD bytesTransfered)
     PrepareSend();
 }
 
-// TODO: This fn should be called when socket is actually closed.
 void NetSocket::OnDisconnected()
 {
     NetSocketBase::OnDisconnected();

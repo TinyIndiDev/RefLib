@@ -3,13 +3,16 @@
 #include "reflib_net_acceptor.h"
 #include "reflib_net_connection_manager.h"
 #include "reflib_net_connection.h"
+#include "reflib_game_obj.h"
+#include "reflib_game_obj_manager.h"
 
 namespace RefLib
 {
 
-NetListener::NetListener()
+NetListener::NetListener(GameObjMgr* gameObjMgr)
     : _acceptor(nullptr)
     , _netConnMgr(nullptr)
+    , _gameObjMgr(gameObjMgr)
 {
 }
 
@@ -97,13 +100,37 @@ void NetListener::OnAccept(NetCompletionOP* bufObj)
 {
     // Get a new SOCKET_OBJ for the client connection
     NetConnection* clientObj = _netConnMgr->GetNetConn();
-    if (clientObj)
-    { 
-        if (clientObj->Initialize(bufObj->GetSocket(), this))
-        {
-            _acceptor->OnAccept(clientObj, bufObj);
-        }
+    if (!clientObj)
+    {
+        DebugPrint("Out of net connection pool.");
+        return;
     }
+
+    if (!clientObj->Initialize(bufObj->GetSocket(), this))
+    {
+        DebugPrint("NetConnection initialization failed.");
+        _netConnMgr->FreeNetConn(clientObj);
+        return;
+    }
+
+    GameObj* obj = _gameObjMgr->GetGameObj();
+    if (!obj)
+    {
+        DebugPrint("Out of game object pool.");
+        _netConnMgr->FreeNetConn(clientObj);
+        return;
+    }
+
+    if (!obj->Initialize(clientObj))
+    {
+        DebugPrint("Game object intiailization failed.");
+        _gameObjMgr->FreeGameObj(obj);
+        _netConnMgr->FreeNetConn(clientObj);
+        return;
+    }
+
+    clientObj->SetParent(obj);
+    _acceptor->OnAccept(clientObj, bufObj);
 }
 
 void NetListener::FreeNetConn(NetConnection* conn)

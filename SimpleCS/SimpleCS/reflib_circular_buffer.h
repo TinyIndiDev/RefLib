@@ -22,24 +22,16 @@ public:
         return (_headPos <= _tailPos) ? (_tailPos - _headPos) : (_bufSize - (_headPos - _tailPos));
     }
 
-    unsigned int GetHeadPos() const { return _headPos; }
-    unsigned int GetTailPos() const { return _tailPos; }
+    bool IsOverlapped() const { return _tailPos < _headPos; }
 
-    char GetStartData();
-    char GetEndData();
+    void GetData(char *pData, int len, unsigned int offset=0);
+    void GetLinearData(char* data, unsigned int& len, unsigned int sizeLimit);
 
-    char GetData(int offset);
-    void GetData(char *pData, int len);
-    void GetData(char *pData, int len, unsigned int offset);
-
-    char* GetDataSegment(unsigned int &len, unsigned int sizeLimit);
-
-    void PutDataWithoutResize(const char *pData, int len);
     bool PutData(const char *pData, int len);
 
-    bool HeadIncrease(unsigned int increasement);
-
 private:
+    void PutDataWithoutResize(const char *pData, int len);
+
     void SetCapacity(unsigned int size);
     unsigned int GetCapacity() const { return _bufSize; }
 

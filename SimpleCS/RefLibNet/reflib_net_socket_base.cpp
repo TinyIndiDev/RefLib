@@ -2,6 +2,7 @@
 
 #include "reflib_net_socket_base.h"
 #include "reflib_net_overlapped.h"
+#include "reflib_net_api.h"
 
 namespace RefLib
 {

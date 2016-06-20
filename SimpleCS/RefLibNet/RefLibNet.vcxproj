@@ -19,33 +19,33 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{822425C3-34D7-43C6-B814-374D3ADA121E}</ProjectGuid>
+    <ProjectGuid>{BE080546-6860-4403-9A9D-0B079C9C6C79}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>SimpleCS</RootNamespace>
+    <RootNamespace>RefLibNet</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -70,25 +70,21 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)..\Build\</OutDir>
-    <IntDir>$(SolutionDir)..\Build\BinTemp\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <TargetName>$(ProjectName)_$(Platform)_$(Configuration)</TargetName>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)..\Build\</OutDir>
     <IntDir>$(SolutionDir)..\Build\BinTemp\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_$(Platform)_$(Configuration)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)..\Build\</OutDir>
+    <IntDir>$(SolutionDir)..\Build\BinTemp\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)_$(Platform)_$(Configuration)</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)..\Build\</OutDir>
     <IntDir>$(SolutionDir)..\Build\BinTemp\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_$(Platform)_$(Configuration)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)..\Build\</OutDir>
     <IntDir>$(SolutionDir)..\Build\BinTemp\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_$(Platform)_$(Configuration)</TargetName>
@@ -98,32 +94,42 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\RefLibCommon;..\RefLibNet</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\RefLibCommon</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\Build\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>RefLibCommon_$(Platform)_$(Configuration).lib;RefLibNet_$(Platform)_$(Configuration).lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
     </Link>
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\RefLibCommon;..\RefLibNet</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\RefLibCommon</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\Build\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>RefLibCommon_$(Platform)_$(Configuration).lib;RefLibNet_$(Platform)_$(Configuration).lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
     </Link>
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -132,18 +138,23 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\RefLibCommon;..\RefLibNet</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\RefLibCommon</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\Build\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>RefLibCommon_$(Platform)_$(Configuration).lib;RefLibNet_$(Platform)_$(Configuration).lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -152,28 +163,65 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\RefLibCommon;..\RefLibNet</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\RefLibCommon</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\Build\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>RefLibCommon_$(Platform)_$(Configuration).lib;RefLibNet_$(Platform)_$(Configuration).lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="reflib_circular_buffer.h" />
+    <ClInclude Include="reflib_game_obj.h" />
+    <ClInclude Include="reflib_game_obj_manager.h" />
+    <ClInclude Include="reflib_net_acceptor.h" />
+    <ClInclude Include="reflib_net_api.h" />
+    <ClInclude Include="reflib_net_completion.h" />
+    <ClInclude Include="reflib_net_connection.h" />
+    <ClInclude Include="reflib_net_connection_manager.h" />
+    <ClInclude Include="reflib_net_def.h" />
+    <ClInclude Include="reflib_net_include.h" />
+    <ClInclude Include="reflib_net_listener.h" />
+    <ClInclude Include="reflib_net_overlapped.h" />
+    <ClInclude Include="reflib_net_profiler.h" />
+    <ClInclude Include="reflib_net_resolve.h" />
+    <ClInclude Include="reflib_net_socket.h" />
+    <ClInclude Include="reflib_net_socket_base.h" />
+    <ClInclude Include="reflib_net_util.h" />
+    <ClInclude Include="reflib_net_worker_server.h" />
+    <ClInclude Include="reflib_packet_obj.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="iocp_server.cpp" />
+    <ClCompile Include="reflib_circular_buffer.cpp" />
+    <ClCompile Include="reflib_game_obj.cpp" />
+    <ClCompile Include="reflib_game_obj_manager.cpp" />
+    <ClCompile Include="reflib_net_acceptor.cpp" />
+    <ClCompile Include="reflib_net_api.cpp" />
+    <ClCompile Include="reflib_net_connection.cpp" />
+    <ClCompile Include="reflib_net_connection_manager.cpp" />
+    <ClCompile Include="reflib_net_listener.cpp" />
+    <ClCompile Include="reflib_net_profiler.cpp" />
+    <ClCompile Include="reflib_net_resolve.cpp" />
+    <ClCompile Include="reflib_net_socket.cpp" />
+    <ClCompile Include="reflib_net_socket_base.cpp" />
+    <ClCompile Include="reflib_net_util.cpp" />
+    <ClCompile Include="reflib_net_worker_server.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

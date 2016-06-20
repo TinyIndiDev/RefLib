@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "reflib_game_obj.h"
-#include "reflib_util.h"
 #include "reflib_net_connection.h"
 
 namespace RefLib

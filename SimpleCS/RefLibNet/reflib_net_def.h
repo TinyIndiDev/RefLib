@@ -3,8 +3,6 @@
 #define NETWORK_DEF_BACKLOG                     100
 #define NETWORK_DEFAULT_OVERLAPPED_COUNT        5
 #define NETWORK_MAX_COMPLETION_THREAD_COUNT     32
-#define NETWORK_TIMEOUT_IN_MSEC                 5000
-#define NETWORK_TIMEOUT_CHECK_INTERVAL          12
 
 #define NETWORK_MAX_CONN                        5000
 

@@ -110,7 +110,7 @@ unsigned RunableThreads::Join()
     bool quit = false;
 
     do {
-        ret = ::WaitForMultipleObjects(static_cast<DWORD>(_hThreads.size()), &(_hThreads.at(0)), TRUE, NETWORK_TIMEOUT_IN_MSEC);
+        ret = ::WaitForMultipleObjects(static_cast<DWORD>(_hThreads.size()), &(_hThreads.at(0)), TRUE, THREAD_TIMEOUT_IN_MSEC);
         switch (ret)
         {
         case WAIT_OBJECT_0:

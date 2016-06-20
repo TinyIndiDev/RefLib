@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stdint.h>
+#include "reflib_type_def.h"
+
 namespace RefLib
 {
 
@@ -18,7 +21,7 @@ public:
     // call when NetConnection is reused.
     void IncSalt()
     {
-        _salt = (_salt + 1) % MAXUINT32;
+        _salt = (_salt + 1) % UINT32_MAX;
     }
 
 private:

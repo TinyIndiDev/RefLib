@@ -6,6 +6,7 @@
 #include "reflib_net_listener.h"
 #include "reflib_net_worker_server.h"
 #include "reflib_game_obj_manager.h"
+#include "reflib_net_api.h"
 
 #pragma comment(lib,"WS2_32")
 

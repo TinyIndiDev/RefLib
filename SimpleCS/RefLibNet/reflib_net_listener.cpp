@@ -5,6 +5,7 @@
 #include "reflib_net_connection.h"
 #include "reflib_game_obj.h"
 #include "reflib_game_obj_manager.h"
+#include "reflib_net_api.h"
 
 namespace RefLib
 {

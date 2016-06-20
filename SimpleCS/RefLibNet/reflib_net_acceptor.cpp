@@ -1,8 +1,8 @@
 #include "stdafx.h"
 
 #include "reflib_net_acceptor.h"
-#include "reflib_net_util.h"
 #include "reflib_net_connection.h"
+#include "reflib_net_api.h"
 
 namespace RefLib
 {

@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "reflib_circular_buffer.h"
-#include "reflib_util.h"
 #include <algorithm>
 
 namespace RefLib

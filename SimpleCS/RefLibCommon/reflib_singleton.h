@@ -1,7 +1,5 @@
 #pragma once
 
-#include "reflib_util.h"
-
 namespace RefLib
 {
 

@@ -8,9 +8,14 @@
 namespace RefLib
 {
 
-GameNetObj::GameNetObj(HANDLE comPort)
-    : _comPort(comPort)
+GameNetObj::GameNetObj(std::weak_ptr<NetService> container)
+    : _comPort(INVALID_HANDLE_VALUE)
 {
+    if (auto p = container.lock())
+    {
+        _comPort = p->GetCompletionPort();
+        _container = container;
+    }
 }
 
 GameNetObj::~GameNetObj()
@@ -29,10 +34,8 @@ CompositId GameNetObj::GetCompId() const
     }
 }
 
-bool GameNetObj::Initialize(std::weak_ptr<NetConnection> conn, std::weak_ptr<NetService> container)
+bool GameNetObj::Initialize(std::weak_ptr<NetConnection> conn)
 {
-    _container = container;
-
     if (auto p = conn.lock())
     {
         _conn = p;

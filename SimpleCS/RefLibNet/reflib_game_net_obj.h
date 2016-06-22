@@ -13,7 +13,7 @@ class MemoryBlock;
 class GameNetObj
 {
 public:
-    GameNetObj(HANDLE comPort);
+    GameNetObj(std::weak_ptr<NetService> container);
     virtual ~GameNetObj();
 
     CompositId GetCompId() const;
@@ -21,7 +21,7 @@ public:
 
     void Destroy();
 
-    virtual bool Initialize(std::weak_ptr<NetConnection> conn, std::weak_ptr<NetService> container);
+    virtual bool Initialize(std::weak_ptr<NetConnection> conn);
     virtual bool PostInit();
 
     virtual void Reset();

@@ -29,10 +29,9 @@ int main()
     if (!netService->Initialize(port, maxUser, sysInfo.dwNumberOfProcessors))
         return -1;
 
-    HANDLE comPort = netService->GetCompletionPort();
     for (int i = 0; i < 10; ++i)
     {
-        auto obj = std::make_shared<GameNetObj>(comPort);
+        auto obj = std::make_shared<GameNetObj>(netService);
         netService->Register(obj);
     }
 

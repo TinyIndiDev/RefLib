@@ -16,7 +16,6 @@ class NetWorkerServer;
 
 class NetService
     : public RefLib::RunableThreads
-    , public std::enable_shared_from_this<NetService>
 {
 public:
     NetService();

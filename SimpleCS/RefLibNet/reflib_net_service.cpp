@@ -70,7 +70,7 @@ bool NetService::Register(std::weak_ptr<GameNetObj> obj)
     if (!conn)
         return false;
     
-    if (p->Initialize(conn, shared_from_this()))
+    if (p->Initialize(conn))
     {
         conn->RegisterParent(p);
         _freeObj.push(p);

@@ -10,7 +10,7 @@
 namespace RefLib
 {
 
-class GameObj;
+class GameNetObj;
 
 class NetIoBuffer : public NetCompletionOP
 {
@@ -46,8 +46,8 @@ public:
 
     bool Initialize(SOCKET sock);
 
-    void SetParent(GameObj* parent);
     void Send(char* data, uint16 dataLen);
+    virtual void RecvPacket(MemoryBlock* packet) {}
 
     virtual void OnCompletionSuccess(NetCompletionOP* bufObj, DWORD bytesTransfered) override;
     virtual void OnCompletionFailure(NetCompletionOP* bufObj, DWORD bytesTransfered, int error) override;
@@ -75,8 +75,6 @@ private:
 
     CircularBuffer  _recvBuffer;
     SafeLock        _recvLock;
-
-    GameObj*        _parent;
 };
 
 } // namespace RefLib

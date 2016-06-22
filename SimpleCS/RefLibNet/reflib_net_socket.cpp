@@ -6,7 +6,6 @@
 #include "reflib_net_listener.h"
 #include "reflib_memory_pool.h"
 #include "reflib_packet_obj.h"
-#include "reflib_game_obj.h"
 
 namespace RefLib
 {
@@ -28,9 +27,7 @@ NetIoBuffer::~NetIoBuffer()
 // NetSocket
 
 NetSocket::NetSocket()
-    : _parent(nullptr)
 {
-
 }
 
 bool NetSocket::Initialize(SOCKET sock) 
@@ -39,11 +36,6 @@ bool NetSocket::Initialize(SOCKET sock)
     NetSocketBase::SetSocket(sock);
 
     return true;
-}
-
-void NetSocket::SetParent(GameObj* parent)
-{
-    _parent = parent;
 }
 
 void NetSocket::ClearRecvQueue()
@@ -117,7 +109,6 @@ void NetSocket::OnRecvData(const char* data, int dataLen)
 {
     REFLIB_ASSERT_RETURN_IF_FAILED(data, "null data received.");
     REFLIB_ASSERT_RETURN_IF_FAILED(dataLen, "null size data received.");
-    REFLIB_ASSERT_RETURN_IF_FAILED(_parent, "No game object assigned.");
 
     SafeLock::Owner guard(_recvLock);
 
@@ -133,7 +124,8 @@ void NetSocket::OnRecvData(const char* data, int dataLen)
             Disconnect(NET_CTYPE_SYSTEM);
             break;
         }
-        _parent->RecvPacket(buffer);
+
+        RecvPacket(buffer);
     }
 }
 

@@ -1,27 +1,54 @@
 #include "stdafx.h"
 
 #include "reflib_net_connection.h"
-#include "reflib_net_listener.h"
-#include "reflib_game_obj.h"
+#include "reflib_net_connection_manager.h"
+#include "reflib_game_net_obj.h"
 
 namespace RefLib
 {
 
-bool NetConnection::Initialize(SOCKET sock, NetListener* netListener)
+void NetConnection::RegisterParent(std::weak_ptr<GameNetObj> parent)
+{
+    _parent = parent;
+}
+
+bool NetConnection::Initialize(SOCKET sock, std::weak_ptr<NetConnectionMgr> container)
 {
     if (!NetSocket::Initialize(sock))
         return false;
 
-    REFLIB_ASSERT_RETURN_VAL_IF_FAILED(netListener, "NetListener is null", false);
-    _container = netListener;
-    return true;
+    if (!container.lock().get())
+        return false;
+
+    _container = container;
+
+    if (auto p = _parent.lock())
+    {
+        return p->PostInit();
+    }
+
+    return false;
+}
+
+void NetConnection::RecvPacket(MemoryBlock* packet) 
+{
+    if (auto p = _parent.lock())
+    {
+        p->RecvPacket(packet);
+    }
 }
 
 void NetConnection::OnDisconnected()
 {
     NetSocket::OnDisconnected();
 
-    _container->FreeNetConn(this);
+    if(auto p = _container.lock())
+        p->FreeNetConn(GetCompId());
+
+    if (auto p = _parent.lock())
+    {
+        p->Destroy();
+    }
 }
 
 } // namespace RefLib

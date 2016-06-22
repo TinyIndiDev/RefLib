@@ -1,35 +1,33 @@
 #include "stdafx.h"
 #include "reflib_net_listener.h"
 #include "reflib_net_acceptor.h"
-#include "reflib_net_connection_manager.h"
 #include "reflib_net_connection.h"
-#include "reflib_game_obj.h"
-#include "reflib_game_obj_manager.h"
+#include "reflib_net_connection_manager.h"
+#include "reflib_game_net_obj.h"
 #include "reflib_net_api.h"
+#include "reflib_util.h"
 
 namespace RefLib
 {
 
-NetListener::NetListener(GameObjMgr* gameObjMgr)
-    : _acceptor(nullptr)
-    , _netConnMgr(nullptr)
-    , _gameObjMgr(gameObjMgr)
+NetListener::NetListener()
 {
 }
 
 NetListener::~NetListener()
 {
-    SAFE_DELETE(_acceptor);
-    SAFE_DELETE(_netConnMgr);
 }
 
-bool NetListener::Initialize(unsigned reserve)
+bool NetListener::Initialize(unsigned maxCnt)
 {
-    _netConnMgr = new NetConnectionMgr();
-    if (!_netConnMgr->Initialize(reserve))
-        return false;
+    _connMgr = std::make_shared<NetConnectionMgr>();
 
-    return true;
+    return _connMgr->Initialize(maxCnt);
+}
+
+std::weak_ptr<NetConnection> NetListener::RegisterNetConnection()
+{
+    return _connMgr ? _connMgr->Register() : std::weak_ptr<NetConnection>();
 }
 
 bool NetListener::Listen(unsigned port)
@@ -66,7 +64,7 @@ bool NetListener::Listen(unsigned port)
     if (!g_network.Listen(GetSocket(), saLocal))
         return false;
 
-    _acceptor = new NetAcceptor(reinterpret_cast<NetSocketBase*>(this), completionPort);
+    _acceptor = std::make_unique<NetAcceptor>(reinterpret_cast<NetSocketBase*>(this), completionPort);
     _acceptor->Accepts();
 
     return true;
@@ -99,51 +97,20 @@ void NetListener::OnCompletionSuccess(NetCompletionOP* bufObj, DWORD bytesTransf
 
 void NetListener::OnAccept(NetCompletionOP* bufObj)
 {
-    // Get a new SOCKET_OBJ for the client connection
-    NetConnection* clientObj = _netConnMgr->GetNetConn();
-    if (!clientObj)
-    {
-        DebugPrint("Out of net connection pool.");
+    if (!_connMgr)
         return;
-    }
 
-    if (!clientObj->Initialize(bufObj->GetSocket(), this))
-    {
-        DebugPrint("NetConnection initialization failed.");
-        _netConnMgr->FreeNetConn(clientObj);
+    auto conn = _connMgr->GetNetConn().lock();
+    if (!conn || !conn->Initialize(bufObj->GetSocket(), _connMgr))
         return;
-    }
 
-    GameObj* obj = _gameObjMgr->GetGameObj();
-    if (!obj)
-    {
-        DebugPrint("Out of game object pool.");
-        _netConnMgr->FreeNetConn(clientObj);
-        return;
-    }
-
-    if (!obj->Initialize(clientObj))
-    {
-        DebugPrint("Game object intiailization failed.");
-        _gameObjMgr->FreeGameObj(obj);
-        _netConnMgr->FreeNetConn(clientObj);
-        return;
-    }
-
-    clientObj->SetParent(obj);
-    _acceptor->OnAccept(clientObj, bufObj);
-}
-
-void NetListener::FreeNetConn(NetConnection* conn)
-{
-    REFLIB_ASSERT_RETURN_IF_FAILED(conn, "NetConnection is null");
-    _netConnMgr->FreeNetConn(conn);
+    _acceptor->OnAccept(conn, bufObj);
 }
 
 void NetListener::Shutdown()
 {
     Disconnect(NET_CTYPE_SHUTDOWN);
-    _netConnMgr->Shutdown();
+    _connMgr->Shutdown();
 }
 
 } // namespace RefLib

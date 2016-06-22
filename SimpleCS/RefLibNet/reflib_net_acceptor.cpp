@@ -63,13 +63,17 @@ int NetAcceptor::PostAccept(AcceptBuffer* acceptObj)
     return NO_ERROR;
 }
 
-void NetAcceptor::OnAccept(NetConnection* clientObj, NetCompletionOP* bufObj)
+void NetAcceptor::OnAccept(std::weak_ptr<NetConnection> clientObj, NetCompletionOP* bufObj)
 {
+    auto conn = clientObj.lock();
+    if (!conn.get())
+        return;
+
     // Associate the new connection to our completion port
     HANDLE hrc = CreateIoCompletionPort(
         (HANDLE)bufObj->GetSocket(),
         _completionPort,
-        (ULONG_PTR)clientObj,
+        (ULONG_PTR)conn.get(),
         0);
     if (hrc == NULL)
     {
@@ -77,7 +81,7 @@ void NetAcceptor::OnAccept(NetConnection* clientObj, NetCompletionOP* bufObj)
         return;
     }
 
-    clientObj->OnConnected();
+    conn->OnConnected();
 
     // Re-post the AcceptEx
     AcceptBuffer* acceptObj = reinterpret_cast<AcceptBuffer*>(bufObj);

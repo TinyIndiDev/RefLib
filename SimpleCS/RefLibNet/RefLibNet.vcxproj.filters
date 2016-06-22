@@ -27,12 +27,6 @@
     <ClInclude Include="reflib_circular_buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="reflib_game_obj.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="reflib_game_obj_manager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="reflib_net_acceptor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -81,18 +75,18 @@
     <ClInclude Include="reflib_packet_obj.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="reflib_net_service.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="reflib_game_net_obj.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="reflib_circular_buffer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="reflib_game_obj.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="reflib_game_obj_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="reflib_net_acceptor.cpp">
@@ -126,6 +120,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="reflib_net_worker_server.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="reflib_net_service.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="reflib_game_net_obj.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

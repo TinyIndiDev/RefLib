@@ -3,10 +3,9 @@
 
 #include "stdafx.h"
 
-#include "reflib_net_listener.h"
-#include "reflib_net_worker_server.h"
-#include "reflib_game_obj_manager.h"
+#include "reflib_net_service.h"
 #include "reflib_net_api.h"
+#include "reflib_game_net_obj.h"
 
 #pragma comment(lib,"WS2_32")
 
@@ -17,9 +16,7 @@ int main()
     unsigned maxUser = 3000;
     unsigned port = 5150;
 
-    GameObjMgr gameObjMgr;
-    NetWorkerServer workerServer;
-    NetListener netListener(&gameObjMgr);
+    auto netService = std::make_shared<NetService>();
 
     SYSTEM_INFO sysInfo;
     GetSystemInfo(&sysInfo);
@@ -29,19 +26,17 @@ int main()
     if (!g_network.Initialize())
         return -1;
 
-    if (!gameObjMgr.Initialize(maxUser, sysInfo.dwNumberOfProcessors))
+    if (!netService->Initialize(port, maxUser, sysInfo.dwNumberOfProcessors))
         return -1;
 
-    if (!netListener.Initialize(maxUser))
-        return -1;
+    HANDLE comPort = netService->GetCompletionPort();
+    for (int i = 0; i < 10; ++i)
+    {
+        auto obj = std::make_shared<GameNetObj>(comPort);
+        netService->Register(obj);
+    }
 
-    if (!workerServer.Initialize(sysInfo.dwNumberOfProcessors))
-        return -1;
-
-    netListener.Listen(port);
-
-    netListener.Shutdown();
-    workerServer.Deactivate();
+    netService->Shutdown();
 
     return 0;
 }

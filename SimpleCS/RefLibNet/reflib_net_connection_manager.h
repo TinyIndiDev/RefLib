@@ -3,7 +3,9 @@
 #include <atomic>
 #include <map>
 #include <queue>
+#include <memory>
 #include "reflib_safelock.h"
+#include "reflib_composit_id.h"
 
 namespace RefLib
 {
@@ -17,16 +19,17 @@ public:
     ~NetConnectionMgr();
 
     bool Initialize(unsigned reserve);
+    std::weak_ptr<NetConnection> Register();
     void Shutdown();
 
-    NetConnection* GetNetConn();
-    bool FreeNetConn(NetConnection *conn);
+    std::weak_ptr<NetConnection> GetNetConn();
+    bool FreeNetConn(CompositId compId);
 
 private:
     uint32 GetNextIndex();
 
-    typedef std::queue<NetConnection*> FREE_CONNS;
-    typedef std::map<uint64, NetConnection*> NET_CONNS;
+    typedef std::queue<std::shared_ptr<NetConnection>> FREE_CONNS;
+    typedef std::map<uint64, std::shared_ptr<NetConnection>> NET_CONNS;
 
     FREE_CONNS  _freeConns;
     NET_CONNS   _netConns;

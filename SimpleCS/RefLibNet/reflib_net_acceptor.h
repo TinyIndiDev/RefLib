@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 #include "reflib_net_overlapped.h"
 
 #define SOCKETADDR_BUFFER_SIZE  (sizeof(SOCKADDR_STORAGE) + 16)
@@ -38,7 +39,7 @@ public:
     ~NetAcceptor();
 
     void Accepts();
-    void OnAccept(NetConnection* clientobj, NetCompletionOP* bufObj);
+    void OnAccept(std::weak_ptr<NetConnection> clientobj, NetCompletionOP* bufObj);
 
 private:
     int PostAccept(AcceptBuffer* acceptObj);

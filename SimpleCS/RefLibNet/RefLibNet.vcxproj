@@ -186,8 +186,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="reflib_circular_buffer.h" />
-    <ClInclude Include="reflib_game_obj.h" />
-    <ClInclude Include="reflib_game_obj_manager.h" />
+    <ClInclude Include="reflib_game_net_obj.h" />
+    <ClInclude Include="reflib_net_service.h" />
     <ClInclude Include="reflib_net_acceptor.h" />
     <ClInclude Include="reflib_net_api.h" />
     <ClInclude Include="reflib_net_completion.h" />
@@ -209,8 +209,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="reflib_circular_buffer.cpp" />
-    <ClCompile Include="reflib_game_obj.cpp" />
-    <ClCompile Include="reflib_game_obj_manager.cpp" />
+    <ClCompile Include="reflib_game_net_obj.cpp" />
+    <ClCompile Include="reflib_net_service.cpp" />
     <ClCompile Include="reflib_net_acceptor.cpp" />
     <ClCompile Include="reflib_net_api.cpp" />
     <ClCompile Include="reflib_net_connection.cpp" />

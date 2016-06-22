@@ -6,18 +6,17 @@
 namespace RefLib
 {
 
-class NetListener;
 class GameObj;
+class NetConnectionMgr;
 
 class NetConnection : public NetSocket
 {
 public:
     NetConnection(uint32 id, uint32 salt)
         : _id(id, salt)
-    {
-    }
+    {}
 
-    uint64 GetConId() { return _id.GetCompId(); }
+    CompositId GetCompId() const { return _id; }
 
     // call when NetConnection is reused.
     void IncSalt()
@@ -25,12 +24,17 @@ public:
         _id.IncSalt();
     }
 
-    bool Initialize(SOCKET sock, NetListener* netListener);
+    void RegisterParent(std::weak_ptr<GameNetObj> parent);
+
+    bool Initialize(SOCKET sock, std::weak_ptr<NetConnectionMgr> container);
+
+    virtual void RecvPacket(MemoryBlock* packet) override;
     virtual void OnDisconnected() override;
 
 private:
     CompositId _id;
-    NetListener* _container;
+    std::weak_ptr<GameNetObj> _parent;
+    std::weak_ptr<NetConnectionMgr> _container;
 };
 
 } // namespace RefLib

@@ -13,35 +13,26 @@ NetConnectionMgr::NetConnectionMgr()
 
 NetConnectionMgr::~NetConnectionMgr()
 {
-    SafeLock::Owner owner(_connLock);
-
-    while (!_freeConns.empty())
-    {
-        NetConnection* conn = _freeConns.front();
-        _freeConns.pop();
-        SAFE_DELETE(conn);
-    }
-
-    for (auto element : _netConns)
-    {
-        delete element.second;
-    }
-    _netConns.clear();
 }
 
 bool NetConnectionMgr::Initialize(unsigned reserve)
 {
     _capacity = reserve;
 
+    return true;
+}
+
+std::weak_ptr<NetConnection> NetConnectionMgr::Register()
+{
+    if (_capacity <= _lastIndex)
+        return std::weak_ptr<NetConnection>();
+
     SafeLock::Owner owner(_connLock);
 
-    for (unsigned i = 0; i < reserve; ++i)
-    {
-        NetConnection* conn = new NetConnection(GetNextIndex(), 0);
-        _freeConns.push(conn);
-    }
+    auto p = std::make_shared<NetConnection>(GetNextIndex(), 0);
+    _freeConns.push(p);
 
-    return true;
+    return p;
 }
 
 void NetConnectionMgr::Shutdown()
@@ -50,8 +41,12 @@ void NetConnectionMgr::Shutdown()
 
     for (auto element : _netConns)
     {
-        NetConnection* conn = element.second;
-        conn->Disconnect(NET_CTYPE_SHUTDOWN);
+        auto conn = element.second;
+        if (conn.get())
+        {
+            conn->Disconnect(NET_CTYPE_SHUTDOWN);
+            conn.reset();
+        }
     }
 }
 
@@ -61,9 +56,9 @@ uint32 NetConnectionMgr::GetNextIndex()
     return (prev + 1);
 }
 
-NetConnection* NetConnectionMgr::GetNetConn()
+std::weak_ptr<NetConnection> NetConnectionMgr::GetNetConn()
 {
-    NetConnection *conn = nullptr;
+    std::shared_ptr<NetConnection> conn;
 
     SafeLock::Owner owner(_connLock);
 
@@ -72,30 +67,25 @@ NetConnection* NetConnectionMgr::GetNetConn()
         conn = _freeConns.front();
         _freeConns.pop();
 
-        conn->IncSalt();
-    }
-    else if (_netConns.size() < _capacity)
-    {
-        conn = new NetConnection(GetNextIndex(), 0);
-    }
-
-    if (conn)
-    {
-        _netConns.insert(std::pair<uint64, NetConnection*>(conn->GetConId(), conn));
+        if (conn.get())
+        {
+            conn->IncSalt();
+            _netConns.insert(std::pair<uint64, std::shared_ptr<NetConnection>>(conn->GetCompId().GetIndex(), conn));
+        }
     }
 
     return conn;
 }
 
-bool NetConnectionMgr::FreeNetConn(NetConnection *conn)
+bool NetConnectionMgr::FreeNetConn(CompositId compId)
 {
     SafeLock::Owner owner(_connLock);
 
-    auto it = _netConns.find(conn->GetConId());
+    auto it = _netConns.find(compId.GetIndex());
     if (it != _netConns.end())
     {
+        _freeConns.push(it->second);
         _netConns.erase(it);
-        _freeConns.push(conn);
 
         return true;
     }

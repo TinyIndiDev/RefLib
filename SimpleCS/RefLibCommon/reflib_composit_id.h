@@ -15,8 +15,8 @@ public:
     {
     }
 
-    uint32 GetId() const { return _id; }
-    uint64 GetCompId() const { return (_id << 16 | _salt); }
+    uint32 GetSlotId() const { return _id; }
+    uint64 GetIndex() const { return (_id << 16 | _salt); }
 
     // call when NetConnection is reused.
     void IncSalt()

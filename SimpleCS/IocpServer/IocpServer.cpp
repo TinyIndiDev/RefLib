@@ -1,4 +1,4 @@
-// SimpleCS.cpp : 콘솔 응용 프로그램에 대한 진입점을 정의합니다.
+// IocpServer.cpp : Defines the entry point for the console application.
 //
 
 #include "stdafx.h"

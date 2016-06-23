@@ -56,7 +56,7 @@ uint32 NetConnectionMgr::GetNextIndex()
     return (prev + 1);
 }
 
-std::weak_ptr<NetConnection> NetConnectionMgr::GetNetConn()
+std::weak_ptr<NetConnection> NetConnectionMgr::PopNetConn()
 {
     std::shared_ptr<NetConnection> conn;
 
@@ -77,7 +77,7 @@ std::weak_ptr<NetConnection> NetConnectionMgr::GetNetConn()
     return conn;
 }
 
-bool NetConnectionMgr::FreeNetConn(CompositId compId)
+bool NetConnectionMgr::PushNetConn(CompositId compId)
 {
     SafeLock::Owner owner(_connLock);
 

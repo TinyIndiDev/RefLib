@@ -47,8 +47,10 @@ bool GameNetObj::Initialize(std::weak_ptr<NetConnection> conn)
 // called afeter accept
 bool GameNetObj::PostInit()
 {
-    // TODO: NetService::GetObj must be called
-    return true;
+    if (auto p = _container.lock())
+        return p->AllocObj(GetCompId());
+
+    return false;
 }
 
 // Called when game object is expired
@@ -69,7 +71,7 @@ void GameNetObj::OnRecvPacket()
 {
 }
 
-void GameNetObj::Destroy()
+void GameNetObj::OnDisconnected()
 {
     Reset();
 

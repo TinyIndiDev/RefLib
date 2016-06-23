@@ -23,9 +23,7 @@ bool NetConnection::Initialize(SOCKET sock, std::weak_ptr<NetConnectionMgr> cont
     _container = container;
 
     if (auto p = _parent.lock())
-    {
         return p->PostInit();
-    }
 
     return false;
 }
@@ -33,22 +31,18 @@ bool NetConnection::Initialize(SOCKET sock, std::weak_ptr<NetConnectionMgr> cont
 void NetConnection::RecvPacket(MemoryBlock* packet) 
 {
     if (auto p = _parent.lock())
-    {
         p->RecvPacket(packet);
-    }
 }
 
 void NetConnection::OnDisconnected()
 {
     NetSocket::OnDisconnected();
 
-    if(auto p = _container.lock())
-        p->FreeNetConn(GetCompId());
+    if(auto container = _container.lock())
+        container->PushNetConn(GetCompId());
 
     if (auto p = _parent.lock())
-    {
-        p->Destroy();
-    }
+        p->OnDisconnected();
 }
 
 } // namespace RefLib

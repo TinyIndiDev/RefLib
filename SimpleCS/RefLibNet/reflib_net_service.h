@@ -1,8 +1,8 @@
 #pragma once
 
-#include <vector>
-#include <concurrent_queue.h>
 #include <memory>
+#include <vector>
+#include <map>
 #include "reflib_runable_threads.h"
 #include "reflib_safelock.h"
 #include "reflib_composit_id.h"
@@ -27,9 +27,9 @@ public:
     bool Register(std::weak_ptr<GameNetObj> obj);
 
     HANDLE GetCompletionPort() const { return _comPort; }
+    std::weak_ptr<GameNetObj> GetObj(const CompositId& id);
 
-    std::weak_ptr<GameNetObj> GetObj();
-    std::weak_ptr<GameNetObj> GetObj(CompositId id);
+    bool AllocObj(const CompositId& id);
     bool FreeObj(const CompositId& id);
 
 protected:
@@ -37,9 +37,11 @@ protected:
     virtual unsigned Run() override;
 
 private:
+    typedef std::map<uint32, std::shared_ptr<GameNetObj>> FREE_NET_OBJS;
     typedef std::vector<std::shared_ptr<GameNetObj>> GAME_NET_OBJS;
 
-    Concurrency::concurrent_queue<std::shared_ptr<GameNetObj>> _freeObj;
+    SafeLock _freeLock;
+    FREE_NET_OBJS _freeObjs;
     GAME_NET_OBJS _objs;
 
     std::unique_ptr<NetListener> _netListener;

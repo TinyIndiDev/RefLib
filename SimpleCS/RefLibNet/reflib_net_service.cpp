@@ -73,7 +73,11 @@ bool NetService::Register(std::weak_ptr<GameNetObj> obj)
     if (p->Initialize(conn))
     {
         conn->RegisterParent(p);
-        _freeObj.push(p);
+
+        SafeLock::Owner lock(_freeLock);
+
+        uint32 slot = static_cast<uint32>(_freeObjs.size());
+        _freeObjs.emplace(slot, p);
 
         return true;
     }
@@ -81,20 +85,31 @@ bool NetService::Register(std::weak_ptr<GameNetObj> obj)
     return false;
 }
 
-std::weak_ptr<GameNetObj> NetService::GetObj()
+std::weak_ptr<GameNetObj> NetService::GetObj(const CompositId& id)
 {
-    std::shared_ptr<GameNetObj> p;
+    if (id.GetSlotId() >= _maxCnt)
+        return std::weak_ptr<GameNetObj>();
 
-    if (_freeObj.try_pop(p) && p.get())
-    {
-        CompositId id = p->GetCompId();
+    return _objs[id.GetSlotId()];
+}
 
-        _objs[id.GetSlotId()] = p;
+bool NetService::AllocObj(const CompositId& id)
+{
+    if (id.GetSlotId() >= _maxCnt)
+        return false;
 
-        return _objs[id.GetSlotId()];
-    }
+    SafeLock::Owner lock(_freeLock);
 
-    return std::weak_ptr<GameNetObj>();
+    auto it = _freeObjs.find(id.GetSlotId());
+    if (it == _freeObjs.end())
+        return false;
+
+    std::shared_ptr<GameNetObj> p = it->second;
+
+    _freeObjs.erase(it);
+    _objs[id.GetSlotId()] = p;
+
+    return true;
 }
 
 bool NetService::FreeObj(const CompositId& id)
@@ -106,19 +121,11 @@ bool NetService::FreeObj(const CompositId& id)
     if (!p)
         return false;
 
-    _freeObj.push(p);
+    _freeObjs.emplace(id.GetSlotId(), p);
 
     _objs[id.GetSlotId()].reset();
 
     return true;
-}
-
-std::weak_ptr<GameNetObj> NetService::GetObj(CompositId id)
-{
-    if (id.GetSlotId() >= _maxCnt)
-        return std::weak_ptr<GameNetObj>();
-
-    return _objs[id.GetSlotId()];
 }
 
 unsigned NetService::Run()

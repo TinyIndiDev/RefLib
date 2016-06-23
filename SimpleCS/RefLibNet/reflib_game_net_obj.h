@@ -19,17 +19,17 @@ public:
     CompositId GetCompId() const;
     std::weak_ptr<NetConnection> GetConn() { return _conn; }
 
-    void Destroy();
-
     virtual bool Initialize(std::weak_ptr<NetConnection> conn);
     virtual bool PostInit();
 
-    virtual void Reset();
     virtual void RecvPacket(MemoryBlock* packet);
-    virtual void Send(char* data, uint16 dataLen);
     virtual void OnRecvPacket();
+    virtual void Send(char* data, uint16 dataLen);
+    virtual void OnDisconnected();
 
 protected:
+    virtual void Reset();
+
     Concurrency::concurrent_queue<MemoryBlock*> _recvPackets;
 
     std::weak_ptr<NetConnection> _conn;

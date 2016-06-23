@@ -199,7 +199,6 @@ void NetworkAPI::DisconnectEx(NetCompletionOP* bufObj)
 {
     SOCKET socket = bufObj->GetSocket();
 
-    // TODO: use overlapped to support asynchronus operation
     _lpfnDisconnectEx(socket, reinterpret_cast<LPOVERLAPPED>(bufObj), 0, 0);
 }
 

@@ -100,7 +100,7 @@ void NetListener::OnAccept(NetCompletionOP* bufObj)
     if (!_connMgr)
         return;
 
-    auto conn = _connMgr->GetNetConn().lock();
+    auto conn = _connMgr->PopNetConn().lock();
     if (!conn || !conn->Initialize(bufObj->GetSocket(), _connMgr))
         return;
 

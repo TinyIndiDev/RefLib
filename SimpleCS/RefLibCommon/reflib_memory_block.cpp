@@ -16,7 +16,6 @@ MemoryBlock::MemoryBlock()
 MemoryBlock::~MemoryBlock()
 {
     REFLIB_ASSERT(!_data, "Memory leak detected!");
-
     DestroyMem();
 }
 
@@ -24,22 +23,14 @@ void MemoryBlock::CreateMem(uint32 len)
 {
     DestroyMem();
 
-    _capacity = len;
+    _capacity = _dataLen = len;
     _data = new char[len];
-    _dataLen = len;
 }
 
-bool MemoryBlock::DestroyMem()
+void MemoryBlock::DestroyMem()
 {
-    if (_data)
-    {
-        delete [] _data;
-        _dataLen = 0;
-
-        return true;
-    }
-
-    return false;
+    SAFE_DELETE_ARRAY(_data);
+    _dataLen = 0;
 }
 
 void MemoryBlock::Resize(uint32 len)

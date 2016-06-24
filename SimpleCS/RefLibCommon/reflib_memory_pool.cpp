@@ -14,6 +14,7 @@ MemoryPool::MemoryPool()
 MemoryPool::~MemoryPool()
 {
     MemoryBlock* buffer = nullptr;
+
     while (_freeBuffers.try_pop(buffer))
     {
         SAFE_DELETE(buffer);
@@ -34,6 +35,7 @@ bool MemoryPool::Initialize(unsigned int reserve)
 MemoryBlock* MemoryPool::GetBuffer(unsigned int bufLen)
 {
     MemoryBlock *newObj = nullptr;
+
     if (!_freeBuffers.try_pop(newObj))
     {
         newObj = new MemoryBlock();
@@ -47,10 +49,8 @@ void MemoryPool::FreeBuffer(MemoryBlock *obj)
 {
     REFLIB_ASSERT_RETURN_IF_FAILED(obj, "Netbuffer is null");
 
-    if (obj->DestroyMem())
-    {
-        _freeBuffers.push(obj);
-    }
+    obj->DestroyMem();
+    _freeBuffers.push(obj);
 }
 
 } // namespace RefLib

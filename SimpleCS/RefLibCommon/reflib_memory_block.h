@@ -10,7 +10,7 @@ public:
     virtual ~MemoryBlock();
 
     void CreateMem(uint32 len);
-    bool DestroyMem();
+    void DestroyMem();
 
     char* GetData() { return _data; }
     uint32 GetDataLen() const { return _dataLen; }

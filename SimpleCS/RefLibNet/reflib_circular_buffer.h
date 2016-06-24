@@ -24,7 +24,7 @@ public:
 
     bool IsOverlapped() const { return _tailPos < _headPos; }
 
-    void GetData(char *pData, int len, unsigned int offset=0);
+    void GetData(char *pData, int len);
     void GetLinearData(char* data, unsigned int& len, unsigned int sizeLimit);
 
     bool PutData(const char *pData, int len);

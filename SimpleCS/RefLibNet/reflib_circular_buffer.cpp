@@ -18,16 +18,14 @@ CircularBuffer::~CircularBuffer()
     SAFE_DELETE_ARRAY(_buffer);
 }
 
-void CircularBuffer::GetData(char *pData, int len, unsigned int offset)
+void CircularBuffer::GetData(char *pData, int len)
 {
-    unsigned int localHeadPos = (_headPos + offset) % _bufSize;
-
-    if (_tailPos < localHeadPos && localHeadPos + len > _bufSize)
+    if (_tailPos < _headPos && _headPos + len > _bufSize)
     {
         int fc, sc;
-        fc = _bufSize - localHeadPos;
+        fc = _bufSize - _headPos;
         sc = len - fc;
-        memcpy(pData, _buffer + localHeadPos, fc);
+        memcpy(pData, _buffer + _headPos, fc);
         if (sc > 0)
         {
             memcpy(pData + fc, _buffer, sc);
@@ -35,7 +33,7 @@ void CircularBuffer::GetData(char *pData, int len, unsigned int offset)
     }
     else
     {
-        memcpy(pData, _buffer + localHeadPos, len);
+        memcpy(pData, _buffer + _headPos, len);
     }
 }
 

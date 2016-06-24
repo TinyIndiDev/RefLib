@@ -11,60 +11,43 @@ namespace RefLib
 class PacketObj
 {
 public:
-    class Header
-    {
-    public:
-        union TagType
-        {
-            uint16 envTag;
-            char byte[2];
-        };
-        union LenType
-        {
-            uint16 contentLen;
-            char byte[2];
-        };
-
-    public:
-        TagType tag;
-        LenType len;
-    };
-
-    void SetHeader(uint16 len)
-    {
-        header.tag.envTag = PACKET_ENVELOP_TAG;
-        header.len.contentLen = len;
-    }
-
-    bool ReadHeader(char* data, uint16 len)
-    {
-        if (len < GetHeaderSize())
-            return false;
-
-        memcpy_s(&header, GetHeaderSize(), data, len);
-        return true;
-    }
-
     static uint16 GetHeaderSize()
     {
-        return sizeof(header.tag.envTag) + sizeof(header.len.contentLen);
+        return sizeof(header.blob);
+    }
+
+    void SetHeader(uint16 contentLen)
+    {
+        header.info.envTag = PACKET_ENVELOP_TAG;
+        header.info.contentLen = contentLen;
     }
 
     bool IsValidEnvTag() const
     {
-        return (header.tag.envTag == PACKET_ENVELOP_TAG);
+        return (header.info.envTag == PACKET_ENVELOP_TAG);
     }
 
     uint16 GetContentLen() const
     {
-        return header.len.contentLen;
+        return header.info.contentLen;
     }
 
 public:
+    struct HeaderVal
+    {
+        uint16 envTag;
+        uint16 contentLen;
+    };
+    union Header
+    {
+        HeaderVal info;
+        char blob[4];
+    };
     Header header;
     char*  conetnt;
 };
 
-#define MAX_PACKET_CONTENT_SIZE ((1024)*(64) - PacketObj::GetHeaderSize())
+#define PACKET_HEADER_SIZE PacketObj::GetHeaderSize()
+#define MAX_PACKET_CONTENT_SIZE ((1024)*(64) - PACKET_HEADER_SIZE)
 
 }

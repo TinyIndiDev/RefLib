@@ -68,7 +68,6 @@ private:
 
     void OnRecvData(const char* data, int dataLen);
     MemoryBlock* ExtractPakcetData(bool& error);
-    bool CheckPacketData(char* blob, unsigned int len, uint16& contentLen, bool& error);
 
     Concurrency::concurrent_queue<MemoryBlock*> _sendQueue;
     Concurrency::concurrent_queue<MemoryBlock*> _sendPendingQueue;

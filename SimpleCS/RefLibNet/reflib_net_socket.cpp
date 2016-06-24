@@ -110,93 +110,54 @@ void NetSocket::OnRecvData(const char* data, int dataLen)
     REFLIB_ASSERT_RETURN_IF_FAILED(data, "null data received.");
     REFLIB_ASSERT_RETURN_IF_FAILED(dataLen, "null size data received.");
 
-    SafeLock::Owner guard(_recvLock);
-
-    _recvBuffer.PutData(data, dataLen);
+    {
+        SafeLock::Owner guard(_recvLock);
+        _recvBuffer.PutData(data, dataLen);
+    }
 
     MemoryBlock* buffer = nullptr;
-    bool error;
-
-    while ((buffer = ExtractPakcetData(error)))
+    bool error = false;
+    while (buffer = ExtractPakcetData(error))
     {
-        if (error)
-        {
-            Disconnect(NET_CTYPE_SYSTEM);
-            break;
-        }
-
         RecvPacket(buffer);
     }
-}
 
-bool NetSocket::CheckPacketData(char* blob, unsigned int len, uint16& contentLen, bool& error)
-{
-    PacketObj obj;
-
-    if (!obj.ReadHeader(blob, len))
-        return false;
-
-    if (!obj.IsValidEnvTag())
-    {
-        DebugPrint("Received data is corrupted");
-        error = true;
-        return false;
-    }
-
-    contentLen = obj.GetContentLen();
-    if (contentLen > len)
-        return false;
-
-    if (contentLen > MAX_PACKET_CONTENT_SIZE)
-    {
-        error = true;
-        return false;
-    }
-
-    return true;
+    if (error)
+        Disconnect(NET_CTYPE_SYSTEM);
 }
 
 MemoryBlock* NetSocket::ExtractPakcetData(bool& error)
 {
     error = false;
 
+    SafeLock::Owner guard(_recvLock);
+
     unsigned int len = _recvBuffer.Size();
-    if (len == 0)
+    if (len < PACKET_HEADER_SIZE)
         return nullptr;
 
-    MemoryBlock* buffer = nullptr;
-    char* blob = nullptr;
-    bool isOverlapped = _recvBuffer.IsOverlapped();
+    PacketObj packetObj;
+    _recvBuffer.GetData(packetObj.header.blob, PACKET_HEADER_SIZE);
 
-    if (!isOverlapped)
+    if (!packetObj.IsValidEnvTag())
     {
-        unsigned int linearLen;
-        _recvBuffer.GetLinearData(blob, linearLen, MAX_PACKET_SIZE);
-        REFLIB_ASSERT_RETURN_VAL_IF_FAILED(!blob || len != linearLen, "Circulur buffer logic error", false);
-
-        uint16 contentLen;
-        if (!CheckPacketData(blob, len, contentLen, error))
-            return nullptr;
-
-        buffer = g_memoryPool.GetBuffer(contentLen);
-        memcpy(buffer->GetData(), blob + PacketObj::GetHeaderSize(), contentLen);
+        DebugPrint("Received data is corrupted");
+        error = true;
+        return nullptr;
     }
-    else
+
+    uint16 contentLen = packetObj.GetContentLen();
+    if (contentLen + PACKET_HEADER_SIZE > len)
+        return nullptr;
+
+    if (contentLen > MAX_PACKET_CONTENT_SIZE)
     {
-        buffer = g_memoryPool.GetBuffer(len);
-
-        blob = buffer->GetData();
-        _recvBuffer.GetData(blob, len);
-
-        uint16 contentLen;
-        if (!CheckPacketData(blob, len, contentLen, error))
-        {
-            g_memoryPool.FreeBuffer(buffer);
-            return nullptr;
-        }
-
-        buffer->Resize(contentLen);
+        error = true;
+        return nullptr;
     }
+
+    MemoryBlock* buffer = g_memoryPool.GetBuffer(contentLen);
+    _recvBuffer.GetData(buffer->GetData(), contentLen);
 
     return buffer;
 }
@@ -206,9 +167,9 @@ void NetSocket::Send(char* data, uint16 dataLen)
     PacketObj packet;
     packet.SetHeader(dataLen);
 
-    MemoryBlock* buffer = g_memoryPool.GetBuffer(dataLen + packet.GetHeaderSize());
-    memcpy(buffer->GetData(), &packet.header, packet.GetHeaderSize());
-    memcpy(buffer->GetData() + packet.GetHeaderSize(), data, dataLen);
+    MemoryBlock* buffer = g_memoryPool.GetBuffer(dataLen + PACKET_HEADER_SIZE);
+    memcpy(buffer->GetData(), packet.header.blob, PACKET_HEADER_SIZE);
+    memcpy(buffer->GetData() + PACKET_HEADER_SIZE, data, dataLen);
 
     _sendPendingQueue.push(buffer);
 

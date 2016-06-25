@@ -8,7 +8,7 @@ namespace RefLib
 class CircularBuffer
 {
 public:
-    CircularBuffer(int size = MAX_SOCKET_BUFFER_SIZE);
+    CircularBuffer(unsigned int size = MAX_SOCKET_BUFFER_SIZE);
     virtual ~CircularBuffer();
 
     void Clear()
@@ -22,15 +22,11 @@ public:
         return (_headPos <= _tailPos) ? (_tailPos - _headPos) : (_bufSize - (_headPos - _tailPos));
     }
 
-    bool IsOverlapped() const { return _tailPos < _headPos; }
-
-    void GetData(char *pData, int len);
-    void GetLinearData(char* data, unsigned int& len, unsigned int sizeLimit);
-
-    bool PutData(const char *pData, int len);
+    bool GetData(char *pData, unsigned int len);
+    bool PutData(const char *pData, unsigned int len);
 
 private:
-    void PutDataWithoutResize(const char *pData, int len);
+    void PutDataWithoutResize(const char *pData, unsigned int len);
 
     void SetCapacity(unsigned int size);
     unsigned int GetCapacity() const { return _bufSize; }

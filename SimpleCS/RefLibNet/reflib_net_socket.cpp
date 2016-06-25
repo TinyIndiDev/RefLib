@@ -116,50 +116,49 @@ void NetSocket::OnRecvData(const char* data, int dataLen)
     }
 
     MemoryBlock* buffer = nullptr;
-    bool error = false;
-    while (buffer = ExtractPakcetData(error))
+    ePACKET_EXTRACT_RESULT ret = PER_NO_DATA;
+
+    while ((ret = ExtractPakcetData(buffer)) == PER_SUCCESS)
     {
         RecvPacket(buffer);
-    }
+    };
 
-    if (error)
+    if (ret == PER_ERROR)
         Disconnect(NET_CTYPE_SYSTEM);
 }
 
-MemoryBlock* NetSocket::ExtractPakcetData(bool& error)
+NetSocket::ePACKET_EXTRACT_RESULT NetSocket::ExtractPakcetData(MemoryBlock* buffer)
 {
-    error = false;
+    PacketObj packetObj;
 
     SafeLock::Owner guard(_recvLock);
 
-    unsigned int len = _recvBuffer.Size();
-    if (len < PACKET_HEADER_SIZE)
-        return nullptr;
-
-    PacketObj packetObj;
-    _recvBuffer.GetData(packetObj.header.blob, PACKET_HEADER_SIZE);
+    if (!_recvBuffer.GetData(packetObj.header.blob, PACKET_HEADER_SIZE))
+    {
+        buffer = nullptr;
+        return PER_NO_DATA;
+    }
 
     if (!packetObj.IsValidEnvTag())
     {
-        DebugPrint("Received data is corrupted");
-        error = true;
-        return nullptr;
+        DebugPrint("Invalid packet envelop tag");
+        buffer = nullptr;
+        return PER_ERROR;
+    }
+
+    if (packetObj.IsValidContentLength())
+    {
+        DebugPrint("Invalid packet conetnt length");
+        buffer = nullptr;
+        return PER_ERROR;
     }
 
     uint16 contentLen = packetObj.GetContentLen();
-    if (contentLen + PACKET_HEADER_SIZE > len)
-        return nullptr;
 
-    if (contentLen > MAX_PACKET_CONTENT_SIZE)
-    {
-        error = true;
-        return nullptr;
-    }
-
-    MemoryBlock* buffer = g_memoryPool.GetBuffer(contentLen);
+    buffer = g_memoryPool.GetBuffer(contentLen);
     _recvBuffer.GetData(buffer->GetData(), contentLen);
 
-    return buffer;
+    return PER_SUCCESS;
 }
 
 void NetSocket::Send(char* data, uint16 dataLen)
@@ -168,6 +167,7 @@ void NetSocket::Send(char* data, uint16 dataLen)
     packet.SetHeader(dataLen);
 
     MemoryBlock* buffer = g_memoryPool.GetBuffer(dataLen + PACKET_HEADER_SIZE);
+
     memcpy(buffer->GetData(), packet.header.blob, PACKET_HEADER_SIZE);
     memcpy(buffer->GetData() + PACKET_HEADER_SIZE, data, dataLen);
 

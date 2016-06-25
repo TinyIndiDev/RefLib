@@ -56,6 +56,12 @@ public:
     virtual void OnDisconnected() override;
 
 private:
+    enum ePACKET_EXTRACT_RESULT
+    {
+        PER_SUCCESS,
+        PER_NO_DATA,
+        PER_ERROR,
+    };
     void PrepareSend();
     bool PostSend();
     void OnSent(NetIoBuffer* sendOP, DWORD bytesTransfered);
@@ -67,7 +73,7 @@ private:
     void ClearSendQueue();
 
     void OnRecvData(const char* data, int dataLen);
-    MemoryBlock* ExtractPakcetData(bool& error);
+    ePACKET_EXTRACT_RESULT ExtractPakcetData(MemoryBlock* buffer);
 
     Concurrency::concurrent_queue<MemoryBlock*> _sendQueue;
     Concurrency::concurrent_queue<MemoryBlock*> _sendPendingQueue;

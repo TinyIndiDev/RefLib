@@ -5,7 +5,7 @@
 namespace RefLib
 {
 
-CircularBuffer::CircularBuffer(int size)
+CircularBuffer::CircularBuffer(unsigned int size)
     : _bufSize(size)
     , _headPos(0)
     , _tailPos(0)
@@ -18,8 +18,11 @@ CircularBuffer::~CircularBuffer()
     SAFE_DELETE_ARRAY(_buffer);
 }
 
-void CircularBuffer::GetData(char *pData, int len)
+bool CircularBuffer::GetData(char *pData, unsigned int len)
 {
+    if (len > Size())
+        return false;
+
     if (_tailPos < _headPos && _headPos + len > _bufSize)
     {
         int fc, sc;
@@ -35,32 +38,31 @@ void CircularBuffer::GetData(char *pData, int len)
     {
         memcpy(pData, _buffer + _headPos, len);
     }
+
+    return true;
 }
 
-void CircularBuffer::GetLinearData(char* data, unsigned int& len, unsigned int sizeLimit)
+bool CircularBuffer::PutData(const char *data, unsigned int len)
 {
-    if (_headPos == _tailPos)
+    if (len == 0 || len + Size() > MAX_SOCKET_BUFFER_SIZE) 
+        return false;
+
+    int room_size = _bufSize - Size();
+    REFLIB_ASSERT_RETURN_VAL_IF_FAILED(room_size >= 0, "Circular buffer corruption: room size is negative", false);
+
+    if (room_size <= len)
     {
-        len = 0;
-        data = nullptr;
+        unsigned int extendSize = MAX_PACKET_SIZE * ((len - room_size) / MAX_PACKET_SIZE + 1);
+        extendSize = (std::min)(extendSize, MAX_SOCKET_BUFFER_SIZE - _bufSize);
+        SetCapacity(_bufSize + extendSize);
     }
-    else if (_headPos < _tailPos)
-    {
-        len = _tailPos - _headPos;
-        if (len > sizeLimit) 
-            len = sizeLimit;
-        data = _buffer + _headPos;
-    }
-    else
-    {
-        len = _bufSize - _headPos;
-        if (len > sizeLimit) 
-            len = sizeLimit;
-        data = _buffer + _headPos;
-    }
+
+    PutDataWithoutResize(data, len);
+
+    return true;
 }
 
-void CircularBuffer::PutDataWithoutResize(const char *data, int len)
+void CircularBuffer::PutDataWithoutResize(const char *data, unsigned int len)
 {
     if (_headPos == _tailPos)
     {
@@ -72,6 +74,9 @@ void CircularBuffer::PutDataWithoutResize(const char *data, int len)
     {
         int copyLen1 = _bufSize - _tailPos;
         int copyLen2 = len - copyLen1;
+
+        REFLIB_ASSERT_RETURN_IF_FAILED(copyLen1 > 0 && copyLen2 >= 0, "Circular buffer is corrupted.");
+
         memcpy(_buffer + _tailPos, data, copyLen1);
         if (copyLen2 > 0)
         {
@@ -86,26 +91,11 @@ void CircularBuffer::PutDataWithoutResize(const char *data, int len)
     }
 }
 
-bool CircularBuffer::PutData(const char *data, int len)
-{
-    if (len <= 0) return false;
-
-    int room_size = static_cast<int>(_bufSize - Size());
-    if (room_size <= len)
-    {
-        int extendSize = MAX_PACKET_SIZE * ((len - room_size) / MAX_PACKET_SIZE + 1);
-        SetCapacity(_bufSize + extendSize);
-    }
-    PutDataWithoutResize(data, len);
-
-    return true;
-}
-
 void CircularBuffer::SetCapacity(unsigned int size)
 {
     if (size > _bufSize)
     {
-        int prevBufSize = _bufSize;
+        unsigned int prevBufSize = _bufSize;
         char *newData = new char[size];
 
         if (_headPos == _tailPos)

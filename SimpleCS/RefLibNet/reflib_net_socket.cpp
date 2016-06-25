@@ -112,7 +112,7 @@ void NetSocket::OnRecvData(const char* data, int dataLen)
 
     {
         SafeLock::Owner guard(_recvLock);
-        _recvBuffer.PutData(data, dataLen);
+        REFLIB_ASSERT(_recvBuffer.PutData(data, dataLen), "Data loss: Not enough space");
     }
 
     MemoryBlock* buffer = nullptr;
@@ -183,7 +183,7 @@ void NetSocket::PrepareSend()
 
     while (!_sendPendingQueue.empty()
         && (_sendQueue.unsafe_size() < MAX_SEND_ARRAY_SIZE)
-        && (sendPacketSize < MAX_SOCKET_BUFFER_SIZE))
+        && (sendPacketSize < DEF_SOCKET_BUFFER_SIZE))
     {
         _sendPendingQueue.try_pop(buffer);
         _sendQueue.push(buffer);

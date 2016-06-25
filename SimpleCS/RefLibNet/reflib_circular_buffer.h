@@ -8,7 +8,7 @@ namespace RefLib
 class CircularBuffer
 {
 public:
-    CircularBuffer(unsigned int size = MAX_SOCKET_BUFFER_SIZE);
+    CircularBuffer(unsigned int size = DEF_SOCKET_BUFFER_SIZE);
     virtual ~CircularBuffer();
 
     void Clear()

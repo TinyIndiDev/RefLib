@@ -44,16 +44,20 @@ bool CircularBuffer::GetData(char *pData, unsigned int len)
 
 bool CircularBuffer::PutData(const char *data, unsigned int len)
 {
-    if (len == 0 || len + Size() > MAX_SOCKET_BUFFER_SIZE) 
-        return false;
+    REFLIB_ASSERT_RETURN_VAL_IF_FAILED(len > 0 || len <= MAX_PACKET_SIZE,
+        "Cannot put data: Out of size", false);
 
     int room_size = _bufSize - Size();
-    REFLIB_ASSERT_RETURN_VAL_IF_FAILED(room_size >= 0, "Circular buffer corruption: room size is negative", false);
+    REFLIB_ASSERT_RETURN_VAL_IF_FAILED(room_size >= 0, 
+        "Circular buffer corruption: room size is negative", false);
 
     if (room_size <= len)
     {
         unsigned int extendSize = MAX_PACKET_SIZE * ((len - room_size) / MAX_PACKET_SIZE + 1);
         extendSize = (std::min)(extendSize, MAX_SOCKET_BUFFER_SIZE - _bufSize);
+        REFLIB_ASSERT_RETURN_VAL_IF_FAILED(len >= room_size + extendSize, 
+            "Cannot put data: reached extend limit of circular buffer", false);
+
         SetCapacity(_bufSize + extendSize);
     }
 

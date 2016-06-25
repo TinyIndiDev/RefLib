@@ -34,32 +34,29 @@ void NetAcceptor::Accepts()
 }
 
 // Post an overlapped accept on a listening socket.
-int NetAcceptor::PostAccept(AcceptBuffer* acceptObj)
+bool NetAcceptor::PostAccept(AcceptBuffer* acceptObj)
 {
     // Create the client socket for an incoming connection
     SOCKET sClient = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sClient == INVALID_SOCKET)
     {
         DebugPrint("PostAccept failed: %s", SocketGetLastErrorString());
-        return -1;
+        return false;
     }
 
     acceptObj->Reset();
     acceptObj->SetSocket(sClient);
 
-    if (g_network.Accept(_listenSock->GetSocket(), acceptObj) == FALSE)
+    if (g_network.Accept(_listenSock->GetSocket(), acceptObj) == false)
     {
         if (WSAGetLastError() != WSA_IO_PENDING)
         {
             DebugPrint("PostAccept: AcceptEx failed: %s", SocketGetLastErrorString());
-            return SOCKET_ERROR;
+            return false;
         }
     }
 
-    // Increment the outstanding operation count
-    _listenSock->IncOps();
-
-    return NO_ERROR;
+    return true;
 }
 
 void NetAcceptor::OnAccept(std::weak_ptr<NetConnection> clientObj, NetCompletionOP* bufObj)

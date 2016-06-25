@@ -18,14 +18,27 @@ NetSocketBase::NetSocketBase()
     _disconnectOP = new NetCompletionOP(NetCompletionOP::OP_DISCONNECT);
 }
 
-void NetSocketBase::Connect()
+void NetSocketBase::SetSocket(SOCKET sock)
 {
-    // TODO: fill the code
+    _netStatus = NET_STATUS_DISCONNECTED;
+    _socket.exchange(sock); 
+}
+
+void NetSocketBase::Connect(const SOCKADDR_IN& addr)
+{
+    _netStatus.fetch_or(NET_STATUS_CONN_PENDING);
+
+    _connectOP->Reset();
+    _connectOP->SetSocket(_socket);
+    g_network.Connect(addr, _connectOP);
 }
 
 void NetSocketBase::Disconnect(NetCloseType closer)
 {
-    _netStatus.fetch_or(NET_STATUS_CLOSING);
+    _netStatus.fetch_or(NET_STATUS_CLOSE_PENDING);
+
+    _connectOP->Reset();
+    _connectOP->SetSocket(_socket);
     g_network.Disconnect(_disconnectOP, closer);
 }
 
@@ -36,9 +49,13 @@ void NetSocketBase::OnConnected()
 
 void NetSocketBase::OnDisconnected()
 {
-    SetSocket(INVALID_SOCKET);
+    _socket.exchange(INVALID_SOCKET);
 
-    _netStatus.fetch_and(~NET_STATUS_CONNECTED);
+    _netStatus.fetch_and((~NET_STATUS_CONNECTED) | (~NET_STATUS_CLOSE_PENDING));
+    if (_netStatus != 0)
+    {
+        DebugPrint("OnDisconnected: closed without clearing pending status %d", _netStatus);
+    }
 }
 
-} // namespace RefLib
+} // namespace RefLib)

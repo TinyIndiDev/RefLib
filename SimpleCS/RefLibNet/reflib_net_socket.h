@@ -64,10 +64,10 @@ private:
     };
     void PrepareSend();
     bool PostSend();
-    void OnSent(NetIoBuffer* sendOP, DWORD bytesTransfered);
+    void OnSent(NetCompletionOP* sendOP, DWORD bytesTransfered);
 
     bool PostRecv();
-    void OnRecv(NetIoBuffer* recvOP, DWORD bytesTransfered);
+    void OnRecv(NetCompletionOP* recvOP, DWORD bytesTransfered);
 
     void ClearRecvQueue();
     void ClearSendQueue();

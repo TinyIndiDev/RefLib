@@ -83,9 +83,6 @@ void NetListener::OnCompletionSuccess(NetCompletionOP* bufObj, DWORD bytesTransf
     case NetCompletionOP::OP_ACCEPT:
         OnAccept(bufObj);
         break;
-    case NetCompletionOP::OP_CONNECT:
-        OnConnected();
-        break;
     case NetCompletionOP::OP_DISCONNECT:
         OnDisconnected();
         break;
@@ -97,11 +94,12 @@ void NetListener::OnCompletionSuccess(NetCompletionOP* bufObj, DWORD bytesTransf
 
 void NetListener::OnAccept(NetCompletionOP* bufObj)
 {
-    if (!_connMgr)
-        return;
+    if (!_connMgr) return;
 
     auto conn = _connMgr->AllocNetConn().lock();
-    if (!conn || !conn->Initialize(bufObj->GetSocket(), _connMgr))
+    if (!conn) return;
+
+    if (!conn->Initialize(bufObj->GetSocket(), _connMgr))
         return;
 
     _acceptor->OnAccept(conn, bufObj);

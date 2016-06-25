@@ -16,10 +16,10 @@ public:
     NetSocketBase();
     virtual ~NetSocketBase() {}
 
+    void SetSocket(SOCKET sock);
     SOCKET GetSocket() const { return _socket; }
-    void SetSocket(SOCKET sock) { _socket.exchange(sock); }
 
-    void Connect();
+    void Connect(const SOCKADDR_IN& addr);
     void Disconnect(NetCloseType closer);
 
     virtual void OnConnected();

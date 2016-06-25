@@ -8,14 +8,15 @@
 
 #define MAX_PACKET_SIZE				            ((1024)*(64))
 #define DEF_SOCKET_BUFFER_SIZE  	            (10*MAX_PACKET_SIZE)
-#define MAX_SOCKET_BUFFER_SIZE  	            (10*MAX_PACKET_SIZE)
+#define MAX_SOCKET_BUFFER_SIZE  	            (20*MAX_PACKET_SIZE)
 #define MAX_SEND_ARRAY_SIZE                     10
 
-#define NET_STATUS_DISCONNECTED 0
-#define NET_STATUS_CONNECTED    1
-#define NET_STATUS_RECV_PENDING (1 << 1)
-#define NET_STATUS_SEND_PENDING (1 << 2)
-#define NET_STATUS_CLOSING      (1 << 3)
+#define NET_STATUS_DISCONNECTED     0
+#define NET_STATUS_CONNECTED        (1 << 0)
+#define NET_STATUS_CONN_PENDING     (1 << 1)
+#define NET_STATUS_RECV_PENDING     (1 << 2)
+#define NET_STATUS_SEND_PENDING     (1 << 3)
+#define NET_STATUS_CLOSE_PENDING    (1 << 4)
 
 enum NetCloseType
 {

@@ -16,7 +16,7 @@ int NetResolve::PrintAddress(const SOCKADDR *sa, int salen)
     int rc = getnameinfo(sa, salen, host, hostlen, serv, servlen, NI_NUMERICHOST | NI_NUMERICSERV);
     if (rc != 0)
     {
-        DebugPrint("%s: getnameinfo failed: %d\n", __FILE__, rc);
+        DebugPrint("%s: getnameinfo failed: %d", __FILE__, rc);
         return rc;
     }
 
@@ -49,7 +49,7 @@ PADDRINFOA NetResolve::ResolveAddressA(const std::string& addr, const std::strin
     int rc = getaddrinfo(addr.c_str(), port.c_str(), &hints, &res);
     if (rc != 0)
     {
-        printf("Invalid address %s, getaddrinfo failed: %d\n", addr.c_str(), rc);
+        DebugPrint("Invalid address %s, getaddrinfo failed: %d", addr.c_str(), rc);
         return nullptr;
     }
     return res;

@@ -51,7 +51,7 @@ bool CircularBuffer::PutData(const char *data, unsigned int len)
     REFLIB_ASSERT_RETURN_VAL_IF_FAILED(room_size >= 0, 
         "Circular buffer corruption: room size is negative", false);
 
-    if (room_size <= len)
+    if (static_cast<unsigned int>(room_size) <= len)
     {
         unsigned int extendSize = MAX_PACKET_SIZE * ((len - room_size) / MAX_PACKET_SIZE + 1);
         extendSize = (std::min)(extendSize, MAX_SOCKET_BUFFER_SIZE - _bufSize);

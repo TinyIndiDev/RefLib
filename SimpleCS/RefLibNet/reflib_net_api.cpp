@@ -11,6 +11,7 @@ NetworkAPI::NetworkAPI()
     , _completionPort(INVALID_HANDLE_VALUE)
     , _lpfnAcceptEx(nullptr)
     , _lpfnGetAcceptExSockaddrs(nullptr)
+    , _lpfnConnectEx(nullptr)
     , _lpfnDisconnectEx(nullptr)
 {
 }
@@ -51,6 +52,7 @@ bool NetworkAPI::InitNetworkExFns()
 {
     GUID guidAcceptEx = WSAID_ACCEPTEX;
     GUID guidGetAcceptExSockaddrs = WSAID_GETACCEPTEXSOCKADDRS;
+    GUID guidConnectEx = WSAID_CONNECTEX;
     GUID guidDisconnectEx = WSAID_DISCONNECTEX;
     DWORD bytes;
     int rc;
@@ -93,6 +95,23 @@ bool NetworkAPI::InitNetworkExFns()
         NULL,
         NULL
         );
+    if (rc == SOCKET_ERROR)
+    {
+        DebugPrint("WSAIoctl: SIO_GET_EXTENSION_FUNCTION_POINTER faled: %s",
+            SocketGetLastErrorString());
+        return false;
+    }
+
+    WSAIoctl(
+        sock,
+        SIO_GET_EXTENSION_FUNCTION_POINTER,
+        &guidConnectEx,
+        sizeof(guidConnectEx),
+        &_lpfnConnectEx,
+        sizeof(_lpfnConnectEx),
+        &bytes,
+        NULL,
+        NULL);
     if (rc == SOCKET_ERROR)
     {
         DebugPrint("WSAIoctl: SIO_GET_EXTENSION_FUNCTION_POINTER faled: %s",
@@ -148,7 +167,7 @@ bool NetworkAPI::Listen(SOCKET listenSock, const SOCKADDR_IN& saLocal)
     return true;
 }
 
-BOOL NetworkAPI::Accept(SOCKET listenSock, AcceptBuffer* acceptObj)
+bool NetworkAPI::Accept(SOCKET listenSock, AcceptBuffer* acceptObj)
 {
     DWORD bytes;
 
@@ -164,7 +183,7 @@ BOOL NetworkAPI::Accept(SOCKET listenSock, AcceptBuffer* acceptObj)
         return false;
     }
 
-    return _lpfnAcceptEx(
+    return (_lpfnAcceptEx(
         listenSock,
         acceptObj->GetSocket(),
         acceptObj->GetData(),
@@ -173,15 +192,34 @@ BOOL NetworkAPI::Accept(SOCKET listenSock, AcceptBuffer* acceptObj)
         SOCKETADDR_BUFFER_SIZE,
         &bytes,
         reinterpret_cast<LPOVERLAPPED>(acceptObj)
-        );
+        ) == TRUE);
 }
 
-void NetworkAPI::Disconnect(NetCompletionOP* bufObj, NetCloseType closer)
+bool NetworkAPI::Connect(const SOCKADDR_IN& addr, NetCompletionOP* bufObj)
 {
     SOCKET socket = bufObj->GetSocket();
 
     if (socket == INVALID_SOCKET)
-        return;
+        return false;
+
+    ConnectEx(addr, bufObj);
+
+    return true;
+}
+
+void NetworkAPI::ConnectEx(const SOCKADDR_IN& addr, NetCompletionOP* bufObj)
+{
+    SOCKET socket = bufObj->GetSocket();
+
+    _lpfnConnectEx(socket, (SOCKADDR*)&addr, sizeof(addr), nullptr, 0, nullptr, reinterpret_cast<LPOVERLAPPED>(bufObj));
+}
+
+bool NetworkAPI::Disconnect(NetCompletionOP* bufObj, NetCloseType closer)
+{
+    SOCKET socket = bufObj->GetSocket();
+
+    if (socket == INVALID_SOCKET)
+        return false;
 
     if (closer == NET_CTYPE_SHUTDOWN)
     {
@@ -193,6 +231,8 @@ void NetworkAPI::Disconnect(NetCompletionOP* bufObj, NetCloseType closer)
         DisconnectEx(bufObj);
         closesocket(socket);
     }
+
+    return true;
 }
 
 void NetworkAPI::DisconnectEx(NetCompletionOP* bufObj)

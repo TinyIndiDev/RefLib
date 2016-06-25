@@ -43,7 +43,7 @@ public:
     void OnAccept(std::weak_ptr<NetConnection> clientobj, NetCompletionOP* bufObj);
 
 private:
-    int PostAccept(AcceptBuffer* acceptObj);
+    bool PostAccept(AcceptBuffer* acceptObj);
 
     std::vector<AcceptBuffer*> _pendingAccepts;
     NetSocketBase* _listenSock;

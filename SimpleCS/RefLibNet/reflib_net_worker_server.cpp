@@ -92,8 +92,6 @@ void NetWorkerServer::HandleIO(NetSocketBase* sockObj, NetCompletionOP* bufObj, 
 
         sockObj->OnCompletionSuccess(bufObj, bytesTransfered);
     }
-
-    sockObj->DecOps();
 }
 
 } // RefLib

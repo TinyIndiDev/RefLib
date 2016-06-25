@@ -20,15 +20,18 @@ public:
     HANDLE GetCompletionPort() const { return _completionPort; }
 
     bool Listen(SOCKET listenSock, const SOCKADDR_IN& saLocal);
-    BOOL Accept(SOCKET listenSock, AcceptBuffer* acceptObj);
-    void Disconnect(NetCompletionOP* bufObj, NetCloseType closer);
+    bool Accept(SOCKET listenSock, AcceptBuffer* acceptObj);
+    bool Connect(const SOCKADDR_IN& addr, NetCompletionOP* bufObj);
+    bool Disconnect(NetCompletionOP* bufObj, NetCloseType closer);
 
 private:
     bool InitNetworkExFns();
+    void ConnectEx(const SOCKADDR_IN& addr, NetCompletionOP* bufObj);
     void DisconnectEx(NetCompletionOP* bufObj);
 
     LPFN_ACCEPTEX               _lpfnAcceptEx;
     LPFN_GETACCEPTEXSOCKADDRS   _lpfnGetAcceptExSockaddrs;
+    LPFN_CONNECTEX              _lpfnConnectEx;
     LPFN_DISCONNECTEX           _lpfnDisconnectEx;
 
     HANDLE  _completionPort;

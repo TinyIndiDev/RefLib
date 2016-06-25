@@ -21,12 +21,12 @@ public:
 
     bool Listen(SOCKET listenSock, const SOCKADDR_IN& saLocal);
     bool Accept(SOCKET listenSock, AcceptBuffer* acceptObj);
-    bool Connect(const SOCKADDR_IN& addr, NetCompletionOP* bufObj);
+    bool Connect(NetCompletionOP* bufObj, const SOCKADDR_IN& addr);
     bool Disconnect(NetCompletionOP* bufObj, NetCloseType closer);
 
 private:
     bool InitNetworkExFns();
-    void ConnectEx(const SOCKADDR_IN& addr, NetCompletionOP* bufObj);
+    void ConnectEx(NetCompletionOP* bufObj, const SOCKADDR_IN& addr);
     void DisconnectEx(NetCompletionOP* bufObj);
 
     LPFN_ACCEPTEX               _lpfnAcceptEx;

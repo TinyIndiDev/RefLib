@@ -78,7 +78,7 @@
     <ClInclude Include="reflib_net_service.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="reflib_game_net_obj.h">
+    <ClInclude Include="reflib_net_obj.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -125,7 +125,7 @@
     <ClCompile Include="reflib_net_service.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="reflib_game_net_obj.cpp">
+    <ClCompile Include="reflib_net_obj.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -195,19 +195,34 @@ bool NetworkAPI::Accept(SOCKET listenSock, AcceptBuffer* acceptObj)
         ) == TRUE);
 }
 
-bool NetworkAPI::Connect(const SOCKADDR_IN& addr, NetCompletionOP* bufObj)
+bool NetworkAPI::Connect(NetCompletionOP* bufObj, const SOCKADDR_IN& addr)
 {
     SOCKET socket = bufObj->GetSocket();
-
     if (socket == INVALID_SOCKET)
+    {
+        DebugPrint("Connect failed: socket is null.");
         return false;
+    }
 
-    ConnectEx(addr, bufObj);
+    SOCKADDR_IN saLocal;
+    saLocal.sin_family = AF_INET;
+    saLocal.sin_port = 0;
+    saLocal.sin_addr.s_addr = htonl(INADDR_ANY);
+
+    // bind the socket to a local address and port
+    int rc = bind(socket, (SOCKADDR*)&saLocal, sizeof(saLocal));
+    if (rc == SOCKET_ERROR)
+    {
+        DebugPrint("bind failed: %s", SocketGetLastErrorString());
+        return false;
+    }
+
+    ConnectEx(bufObj, addr);
 
     return true;
 }
 
-void NetworkAPI::ConnectEx(const SOCKADDR_IN& addr, NetCompletionOP* bufObj)
+void NetworkAPI::ConnectEx(NetCompletionOP* bufObj, const SOCKADDR_IN& addr)
 {
     SOCKET socket = bufObj->GetSocket();
 

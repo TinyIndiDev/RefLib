@@ -10,7 +10,7 @@
 namespace RefLib
 {
 
-class GameNetObj;
+class NetObj;
 class NetListener;
 class NetWorkerServer;
 
@@ -21,24 +21,25 @@ public:
     NetService();
     virtual ~NetService();
 
-    bool Initialize(unsigned port, uint32 maxCnt, uint32 concurrency);
+    bool InitServer(unsigned port, uint32 maxCnt, uint32 concurrency);
+    bool InitClient(uint32 maxCnt, uint32 concurrency);
     void Shutdown();
 
-    bool Register(std::weak_ptr<GameNetObj> obj);
+    bool Register(std::weak_ptr<NetObj> obj);
 
     HANDLE GetCompletionPort() const { return _comPort; }
-    std::weak_ptr<GameNetObj> GetObj(const CompositId& id);
+    std::weak_ptr<NetObj> GetNetObj(const CompositId& id);
 
-    bool AllocObj(const CompositId& id);
-    bool FreeObj(const CompositId& id);
+    bool AllocNetObj(const CompositId& id);
+    bool FreeNetObj(const CompositId& id);
 
 protected:
     // run by thread
     virtual unsigned Run() override;
 
 private:
-    typedef std::map<uint32, std::shared_ptr<GameNetObj>> FREE_NET_OBJS;
-    typedef std::vector<std::shared_ptr<GameNetObj>> GAME_NET_OBJS;
+    typedef std::map<uint32, std::shared_ptr<NetObj>> FREE_NET_OBJS;
+    typedef std::vector<std::shared_ptr<NetObj>> GAME_NET_OBJS;
 
     GAME_NET_OBJS _objs;
     FREE_NET_OBJS _freeObjs;

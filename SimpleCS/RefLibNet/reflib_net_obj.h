@@ -10,31 +10,32 @@ class NetConnection;
 class NetService;
 class MemoryBlock;
 
-class GameNetObj
+class NetObj
 {
 public:
-    GameNetObj(std::weak_ptr<NetService> container);
-    virtual ~GameNetObj();
+    NetObj(std::weak_ptr<NetService> container);
+    virtual ~NetObj();
 
     CompositId GetCompId() const;
     std::weak_ptr<NetConnection> GetConn() { return _conn; }
 
     virtual bool Initialize(std::weak_ptr<NetConnection> conn);
     virtual bool PostInit();
-    virtual void OnRecvPacket() {};
+    virtual bool Connect(const std::string& ipStr, uint32 port);
+    virtual void OnRecvPacket()=0;
     virtual void Send(char* data, uint16 dataLen);
     virtual void OnDisconnected();
 
     void RecvPacket(MemoryBlock* packet);
+    MemoryBlock* PopRecvPacket();
 
-protected:
+private:
     void Reset();
 
     Concurrency::concurrent_queue<MemoryBlock*> _recvPackets;
 
-    std::weak_ptr<NetConnection> _conn;
     HANDLE _comPort;
-
+    std::weak_ptr<NetConnection> _conn;
     std::weak_ptr<NetService> _container;
 };
 

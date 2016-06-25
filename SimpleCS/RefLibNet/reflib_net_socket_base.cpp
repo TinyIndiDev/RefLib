@@ -24,19 +24,26 @@ void NetSocketBase::SetSocket(SOCKET sock)
     _socket.exchange(sock); 
 }
 
-void NetSocketBase::Connect(const SOCKADDR_IN& addr)
+bool NetSocketBase::Connect(const SOCKADDR_IN& addr)
 {
-    _netStatus.fetch_or(NET_STATUS_CONN_PENDING);
+    SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock == INVALID_SOCKET)
+    {
+        DebugPrint("Cannot create listen socket: %s", SocketGetLastErrorString());
+        return false;
+    }
 
+    SetSocket(sock);
+
+    _netStatus.fetch_or(NET_STATUS_CONN_PENDING);
     _connectOP->Reset();
     _connectOP->SetSocket(_socket);
-    g_network.Connect(addr, _connectOP);
+    return g_network.Connect(_connectOP, addr);
 }
 
 void NetSocketBase::Disconnect(NetCloseType closer)
 {
     _netStatus.fetch_or(NET_STATUS_CLOSE_PENDING);
-
     _connectOP->Reset();
     _connectOP->SetSocket(_socket);
     g_network.Disconnect(_disconnectOP, closer);

@@ -2,12 +2,12 @@
 
 #include "reflib_net_connection.h"
 #include "reflib_net_connection_manager.h"
-#include "reflib_game_net_obj.h"
+#include "reflib_net_obj.h"
 
 namespace RefLib
 {
 
-void NetConnection::RegisterParent(std::weak_ptr<GameNetObj> parent)
+void NetConnection::RegisterParent(std::weak_ptr<NetObj> parent)
 {
     _parent = parent;
 }
@@ -34,7 +34,7 @@ void NetConnection::RecvPacket(MemoryBlock* packet)
     auto p = _parent.lock();
     REFLIB_ASSERT_RETURN_IF_FAILED(p, "RevPaket: parent is nullptr");
 
-    // deliver packet to GameNetObj
+    // deliver packet to NetObj
     p->RecvPacket(packet);
 }
 

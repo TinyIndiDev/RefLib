@@ -19,7 +19,7 @@ public:
     void SetSocket(SOCKET sock);
     SOCKET GetSocket() const { return _socket; }
 
-    void Connect(const SOCKADDR_IN& addr);
+    bool Connect(const SOCKADDR_IN& addr);
     void Disconnect(NetCloseType closer);
 
     virtual void OnConnected();

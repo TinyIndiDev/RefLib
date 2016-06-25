@@ -10,7 +10,7 @@
 namespace RefLib
 {
 
-class GameNetObj;
+class NetObj;
 
 class NetIoBuffer : public NetCompletionOP
 {

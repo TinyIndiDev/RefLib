@@ -24,7 +24,7 @@ public:
         _id.IncSalt();
     }
 
-    void RegisterParent(std::weak_ptr<GameNetObj> parent);
+    void RegisterParent(std::weak_ptr<NetObj> parent);
 
     bool Initialize(SOCKET sock, std::weak_ptr<NetConnectionMgr> container);
 
@@ -33,7 +33,7 @@ public:
 
 private:
     CompositId _id;
-    std::weak_ptr<GameNetObj> _parent;
+    std::weak_ptr<NetObj> _parent;
     std::weak_ptr<NetConnectionMgr> _container;
 };
 

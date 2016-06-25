@@ -6,7 +6,7 @@
 #include "reflib_net_connection_manager.h"
 #include "reflib_net_listener.h"
 #include "reflib_net_worker_server.h"
-#include "reflib_game_net_obj.h"
+#include "reflib_net_obj.h"
 
 namespace RefLib
 {
@@ -26,10 +26,8 @@ NetService::~NetService()
     }
 }
 
-bool NetService::Initialize(unsigned port, uint32 maxCnt, uint32 concurrency)
+bool NetService::InitServer(unsigned port, uint32 maxCnt, uint32 concurrency)
 {
-    _maxCnt = maxCnt;
-
     _comPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, (ULONG_PTR)nullptr, concurrency);
     if (!_comPort)
     {
@@ -37,6 +35,7 @@ bool NetService::Initialize(unsigned port, uint32 maxCnt, uint32 concurrency)
         return false;
     }
 
+    _maxCnt = maxCnt;
     _objs.reserve(maxCnt);
 
     _netListener = std::make_unique<NetListener>();
@@ -57,7 +56,31 @@ bool NetService::Initialize(unsigned port, uint32 maxCnt, uint32 concurrency)
     return true;
 }
 
-bool NetService::Register(std::weak_ptr<GameNetObj> obj)
+bool NetService::InitClient(uint32 maxCnt, uint32 concurrency)
+{
+    _comPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, (ULONG_PTR)nullptr, concurrency);
+    if (!_comPort)
+    {
+        DebugPrint("CreateIoCompletionPort failed: %d", GetLastError());
+        return false;
+    }
+
+    _maxCnt = maxCnt;
+    _objs.reserve(maxCnt);
+
+    _netWorker = std::make_unique<NetWorkerServer>();
+    if (!_netWorker->Initialize(concurrency))
+        return false;
+
+    if (!CreateThreads(concurrency))
+        return false;
+
+    RunableThreads::Activate();
+
+    return true;
+}
+
+bool NetService::Register(std::weak_ptr<NetObj> obj)
 {
     auto p = obj.lock();
     if (!p)
@@ -82,15 +105,15 @@ bool NetService::Register(std::weak_ptr<GameNetObj> obj)
     return false;
 }
 
-std::weak_ptr<GameNetObj> NetService::GetObj(const CompositId& id)
+std::weak_ptr<NetObj> NetService::GetNetObj(const CompositId& id)
 {
     if (id.GetSlotId() >= _maxCnt)
-        return std::weak_ptr<GameNetObj>();
+        return std::weak_ptr<NetObj>();
 
     return _objs[id.GetSlotId()];
 }
 
-bool NetService::AllocObj(const CompositId& id)
+bool NetService::AllocNetObj(const CompositId& id)
 {
     if (id.GetSlotId() >= _maxCnt)
         return false;
@@ -101,7 +124,7 @@ bool NetService::AllocObj(const CompositId& id)
     if (it == _freeObjs.end())
         return false;
 
-    std::shared_ptr<GameNetObj> p = it->second;
+    std::shared_ptr<NetObj> p = it->second;
 
     _freeObjs.erase(it);
     _objs[id.GetSlotId()] = p;
@@ -109,7 +132,7 @@ bool NetService::AllocObj(const CompositId& id)
     return true;
 }
 
-bool NetService::FreeObj(const CompositId& id)
+bool NetService::FreeNetObj(const CompositId& id)
 {
     if (id.GetSlotId() >= _maxCnt)
         return false;
@@ -140,7 +163,7 @@ unsigned NetService::Run()
             &lpOverlapped,
             INFINITE);
 
-        GameNetObj* obj = (GameNetObj*)ulKey;
+        NetObj* obj = (NetObj*)ulKey;
         if (obj)
         {
             obj->OnRecvPacket();

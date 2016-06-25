@@ -3,7 +3,7 @@
 #include "reflib_net_acceptor.h"
 #include "reflib_net_connection.h"
 #include "reflib_net_connection_manager.h"
-#include "reflib_game_net_obj.h"
+#include "reflib_net_obj.h"
 #include "reflib_net_api.h"
 #include "reflib_util.h"
 

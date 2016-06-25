@@ -67,9 +67,8 @@ bool NetSocket::PostRecv()
 {
     _netStatus.fetch_or(NET_STATUS_RECV_PENDING);
 
-    NetIoBuffer* recvOP = new NetIoBuffer();
+    NetIoBuffer* recvOP = new NetIoBuffer(NetCompletionOP::OP_READ);
     recvOP->SetSocket(GetSocket());
-    recvOP->SetOP(NetCompletionOP::OP_READ);
 
     MemoryBlock* buffer = g_memoryPool.GetBuffer(MAX_PACKET_SIZE);
     recvOP->PushData(buffer);
@@ -210,9 +209,8 @@ bool NetSocket::PostSend()
     if (sendQueueSize == 0)
         return false;
 
-    NetIoBuffer* sendOP = new NetIoBuffer();
+    NetIoBuffer* sendOP = new NetIoBuffer(NetCompletionOP::OP_WRITE);
     sendOP->SetSocket(GetSocket());
-    sendOP->SetOP(NetCompletionOP::OP_WRITE);
 
     std::vector<WSABUF> wbufs;
     wbufs.reserve(sendQueueSize);

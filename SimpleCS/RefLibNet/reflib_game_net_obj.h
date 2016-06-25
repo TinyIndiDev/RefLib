@@ -21,14 +21,14 @@ public:
 
     virtual bool Initialize(std::weak_ptr<NetConnection> conn);
     virtual bool PostInit();
-    virtual void OnRecvPacket();
+    virtual void OnRecvPacket() {};
     virtual void Send(char* data, uint16 dataLen);
     virtual void OnDisconnected();
 
     void RecvPacket(MemoryBlock* packet);
 
 protected:
-    virtual void Reset();
+    void Reset();
 
     Concurrency::concurrent_queue<MemoryBlock*> _recvPackets;
 

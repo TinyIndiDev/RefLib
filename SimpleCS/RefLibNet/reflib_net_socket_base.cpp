@@ -14,8 +14,8 @@ NetSocketBase::NetSocketBase()
     : _socket(INVALID_SOCKET)
     , _netStatus(NET_STATUS_DISCONNECTED) 
 {
-    _connectOP = new NetCompletionOP;
-    _disconnectOP = new NetCompletionOP;
+    _connectOP = new NetCompletionOP(NetCompletionOP::OP_CONNECT);
+    _disconnectOP = new NetCompletionOP(NetCompletionOP::OP_DISCONNECT);
 }
 
 void NetSocketBase::Connect()

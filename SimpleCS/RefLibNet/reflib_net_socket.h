@@ -15,7 +15,7 @@ class GameNetObj;
 class NetIoBuffer : public NetCompletionOP
 {
 public:
-    NetIoBuffer() {}
+    NetIoBuffer(NetOPType op) : NetCompletionOP(op) {}
     ~NetIoBuffer();
 
     void PushData(MemoryBlock* data) 

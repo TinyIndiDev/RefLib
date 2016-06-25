@@ -70,10 +70,6 @@ void GameNetObj::RecvPacket(MemoryBlock* packet)
     ::PostQueuedCompletionStatus(_comPort, 0, (ULONG_PTR)this, NULL);
 }
 
-void GameNetObj::OnRecvPacket()
-{
-}
-
 void GameNetObj::OnDisconnected()
 {
     Reset();

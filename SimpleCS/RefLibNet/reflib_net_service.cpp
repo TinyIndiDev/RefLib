@@ -119,7 +119,6 @@ bool NetService::FreeObj(const CompositId& id)
         return false;
 
     _freeObjs.emplace(id.GetSlotId(), p);
-
     _objs[id.GetSlotId()].reset();
 
     return true;

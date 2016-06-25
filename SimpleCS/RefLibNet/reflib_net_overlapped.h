@@ -29,7 +29,8 @@ public:
         OP_DISCONNECT,
     };
 
-    NetCompletionOP()
+    NetCompletionOP(NetOPType op)
+        : _op(op)
     {
         Reset();
     }
@@ -40,14 +41,13 @@ public:
         _client = INVALID_SOCKET;
     }
 
-    void SetOP(NetOPType op) { _op = op; }
     NetOPType GetOP() const { return _op; }
 
     void SetSocket(SOCKET sock) { _client = sock; }
     SOCKET GetSocket() const { return _client; }
 
 private:
-    NetOPType _op;
+    const NetOPType _op;
     SOCKET _client;
 };
 

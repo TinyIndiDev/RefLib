@@ -15,7 +15,8 @@ class NetConnection;
 class AcceptBuffer : public NetCompletionOP
 {
 public:
-    AcceptBuffer()
+    AcceptBuffer() 
+        : NetCompletionOP(NetCompletionOP::OP_ACCEPT)
     {
         Reset();
     }

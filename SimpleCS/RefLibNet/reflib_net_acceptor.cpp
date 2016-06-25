@@ -45,7 +45,6 @@ int NetAcceptor::PostAccept(AcceptBuffer* acceptObj)
     }
 
     acceptObj->Reset();
-    acceptObj->SetOP(NetCompletionOP::OP_ACCEPT);
     acceptObj->SetSocket(sClient);
 
     if (g_network.Accept(_listenSock->GetSocket(), acceptObj) == FALSE)

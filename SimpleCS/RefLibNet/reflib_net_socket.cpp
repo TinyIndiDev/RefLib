@@ -41,6 +41,8 @@ bool NetSocket::Initialize(SOCKET sock)
 void NetSocket::ClearRecvQueue()
 {
     SafeLock::Owner guard(_recvLock);
+
+    REFLIB_ASSERT(_recvBuffer.Size() == 0, "Recv buffer is not empty.");
     _recvBuffer.Clear();
 }
 
@@ -51,13 +53,13 @@ void NetSocket::ClearSendQueue()
     REFLIB_ASSERT(_sendPendingQueue.empty(), "Send pending queue is not empty");
     while (_sendPendingQueue.try_pop(buffer))
     {
-        SAFE_DELETE(buffer);
+        g_memoryPool.FreeBuffer(buffer);
     }
 
     REFLIB_ASSERT(_sendQueue.empty(), "Send queue is not empty");
     while (_sendQueue.try_pop(buffer))
     {
-        SAFE_DELETE(buffer);
+        g_memoryPool.FreeBuffer(buffer);
     }
 }
 
@@ -178,7 +180,7 @@ void NetSocket::Send(char* data, uint16 dataLen)
 
 void NetSocket::PrepareSend()
 {
-    unsigned sendPacketSize = 0;
+    unsigned int sendPacketSize = 0;
     MemoryBlock* buffer = nullptr;
 
     while (!_sendPendingQueue.empty()
@@ -255,23 +257,31 @@ bool NetSocket::PostSend()
 
 void NetSocket::OnCompletionFailure(NetCompletionOP* bufObj, DWORD bytesTransfered, int error)
 {
+    REFLIB_ASSERT_RETURN_IF_FAILED(bufObj, "OnCOmpletionFailure: NetCompletionOP is nullptr.");
+
     DebugPrint("OP = %d; Error = %d\n", bufObj->GetOP(), error);
 
     switch (bufObj->GetOP())
     {
+    case NetCompletionOP::OP_CONNECT:
     case NetCompletionOP::OP_READ:
     case NetCompletionOP::OP_WRITE:
-        delete bufObj;
+    case NetCompletionOP::OP_DISCONNECT:
         break;
     default:
         REFLIB_ASSERT(false, "Invalid net op");
         break;
     }
+
+    delete bufObj;
+
     return;
 }
 
 void NetSocket::OnCompletionSuccess(NetCompletionOP* bufObj, DWORD bytesTransfered)
 {
+    REFLIB_ASSERT_RETURN_IF_FAILED(bufObj, "OnCOmpletionFailure: NetCompletionOP is nullptr.");
+
     NetIoBuffer *ioBuffer = reinterpret_cast<NetIoBuffer*>(bufObj);
 
     switch (ioBuffer->GetOP())

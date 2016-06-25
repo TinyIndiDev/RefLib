@@ -4,6 +4,7 @@
 #include "reflib_net_connection_manager.h"
 #include "reflib_net_service.h"
 #include "reflib_def.h"
+#include "reflib_memory_pool.h"
 
 namespace RefLib
 {
@@ -25,13 +26,9 @@ GameNetObj::~GameNetObj()
 CompositId GameNetObj::GetCompId() const 
 { 
     if (auto p = _conn.lock())
-    {
         return p->GetCompId();
-    }
-    else
-    {
-        return INVALID_OBJ_ID;
-    }
+
+    return INVALID_OBJ_ID;
 }
 
 bool GameNetObj::Initialize(std::weak_ptr<NetConnection> conn)
@@ -56,6 +53,13 @@ bool GameNetObj::PostInit()
 // Called when game object is expired
 void GameNetObj::Reset()
 {
+    MemoryBlock* buffer = nullptr;
+
+    REFLIB_ASSERT(_recvPackets.empty(), "Reset GameNetObj: recv packet queue is not empty");
+    while (_recvPackets.try_pop(buffer))
+    {
+        g_memoryPool.FreeBuffer(buffer);
+    }
 }
 
 // called by network thead
@@ -66,7 +70,6 @@ void GameNetObj::RecvPacket(MemoryBlock* packet)
     ::PostQueuedCompletionStatus(_comPort, 0, (ULONG_PTR)this, NULL);
 }
 
-// called by business logic thread
 void GameNetObj::OnRecvPacket()
 {
 }

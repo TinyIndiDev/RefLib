@@ -1,7 +1,6 @@
 #include "stdafx.h"
 
 #include "reflib_net_resolve.h"
-
 #include <string>
 
 namespace RefLib

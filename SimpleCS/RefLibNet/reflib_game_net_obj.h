@@ -21,11 +21,11 @@ public:
 
     virtual bool Initialize(std::weak_ptr<NetConnection> conn);
     virtual bool PostInit();
-
-    virtual void RecvPacket(MemoryBlock* packet);
     virtual void OnRecvPacket();
     virtual void Send(char* data, uint16 dataLen);
     virtual void OnDisconnected();
+
+    void RecvPacket(MemoryBlock* packet);
 
 protected:
     virtual void Reset();

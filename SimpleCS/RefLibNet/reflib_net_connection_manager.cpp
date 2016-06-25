@@ -43,10 +43,7 @@ void NetConnectionMgr::Shutdown()
     {
         auto conn = element.second;
         if (conn.get())
-        {
             conn->Disconnect(NET_CTYPE_SHUTDOWN);
-            conn.reset();
-        }
     }
 }
 
@@ -56,7 +53,7 @@ uint32 NetConnectionMgr::GetNextIndex()
     return (prev + 1);
 }
 
-std::weak_ptr<NetConnection> NetConnectionMgr::PopNetConn()
+std::weak_ptr<NetConnection> NetConnectionMgr::AllocNetConn()
 {
     std::shared_ptr<NetConnection> conn;
 
@@ -77,7 +74,7 @@ std::weak_ptr<NetConnection> NetConnectionMgr::PopNetConn()
     return conn;
 }
 
-bool NetConnectionMgr::PushNetConn(CompositId compId)
+bool NetConnectionMgr::FreeNetConn(CompositId compId)
 {
     SafeLock::Owner owner(_connLock);
 

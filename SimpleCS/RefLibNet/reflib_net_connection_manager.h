@@ -22,8 +22,8 @@ public:
     std::weak_ptr<NetConnection> Register();
     void Shutdown();
 
-    std::weak_ptr<NetConnection> PopNetConn();
-    bool PushNetConn(CompositId compId);
+    std::weak_ptr<NetConnection> AllocNetConn();
+    bool FreeNetConn(CompositId compId);
 
 private:
     uint32 GetNextIndex();

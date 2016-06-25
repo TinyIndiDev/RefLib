@@ -40,15 +40,16 @@ private:
     typedef std::map<uint32, std::shared_ptr<GameNetObj>> FREE_NET_OBJS;
     typedef std::vector<std::shared_ptr<GameNetObj>> GAME_NET_OBJS;
 
-    SafeLock _freeLock;
-    FREE_NET_OBJS _freeObjs;
     GAME_NET_OBJS _objs;
+    FREE_NET_OBJS _freeObjs;
 
     std::unique_ptr<NetListener> _netListener;
     std::unique_ptr<NetWorkerServer> _netWorker;
 
     uint32 _maxCnt;
     HANDLE _comPort;
+
+    SafeLock _freeLock;
 };
 
 } // namespace RefLib

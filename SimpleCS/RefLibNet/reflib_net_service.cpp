@@ -63,9 +63,6 @@ bool NetService::Register(std::weak_ptr<GameNetObj> obj)
     if (!p)
         return false;
 
-    if (!_netListener)
-        return false;
-
     auto conn = _netListener->RegisterNetConnection().lock();
     if (!conn)
         return false;

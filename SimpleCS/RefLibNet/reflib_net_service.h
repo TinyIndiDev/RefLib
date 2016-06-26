@@ -35,6 +35,9 @@ public:
     bool AllocNetObj(const CompositId& id);
     bool FreeNetObj(const CompositId& id);
 
+    void OnTerminated(NetServiceChildType childType);
+    bool IsChildClosedAll() const { return _netListenerClosed && _netConnectorClosed && _netWorkerClosed; }
+
 protected:
     bool RegisterToListener(std::weak_ptr<NetObj> obj);
     bool RegisterToConnector(std::weak_ptr<NetObj> obj);
@@ -48,6 +51,10 @@ private:
 
     GAME_NET_OBJS _objs;
     FREE_NET_OBJS _freeObjs;
+
+    std::atomic<bool> _netConnectorClosed;
+    std::atomic<bool> _netListenerClosed;
+    std::atomic<bool> _netWorkerClosed;
 
     std::unique_ptr<NetConnector> _netConnector;
     std::unique_ptr<NetListener> _netListener;

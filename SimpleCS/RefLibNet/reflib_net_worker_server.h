@@ -9,16 +9,18 @@ namespace RefLib
 
 class NetSocketBase;
 class NetCompletionOP;
+class NetService;
 
 class NetWorkerServer
     : public RunableThreads
     , public NetProfiler
 {
 public:
-    NetWorkerServer();
+    NetWorkerServer(NetService* container);
     virtual ~NetWorkerServer() {}
 
     virtual bool Initialize(unsigned int concurrency);
+    virtual bool OnTerminated() override;
 
 protected:
     // run by thread
@@ -27,6 +29,7 @@ protected:
 
 private:
     HANDLE _completionPort;
+    NetService* _container;
 };
 
 } // namespace RefLib

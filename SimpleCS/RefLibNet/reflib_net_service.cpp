@@ -15,6 +15,9 @@ namespace RefLib
 NetService::NetService()
     : _maxCnt(0)
     , _comPort(INVALID_HANDLE_VALUE)
+    , _netListenerClosed(true)
+    , _netConnectorClosed(true)
+    , _netWorkerClosed(true)
 {
 }
 
@@ -39,13 +42,15 @@ bool NetService::InitServer(unsigned port, uint32 maxCnt, uint32 concurrency)
     _maxCnt = maxCnt;
     _objs.resize(maxCnt);
 
-    _netListener = std::make_unique<NetListener>();
+    _netListener = std::make_unique<NetListener>(this);
     if (!_netListener->Initialize(maxCnt))
         return false;
+    _netListenerClosed = false;
 
-    _netWorker = std::make_unique<NetWorkerServer>();
+    _netWorker = std::make_unique<NetWorkerServer>(this);
     if (!_netWorker->Initialize(concurrency))
         return false;
+    _netWorkerClosed = false;
 
     if (!CreateThreads(concurrency))
         return false;
@@ -69,13 +74,15 @@ bool NetService::InitClient(uint32 maxCnt, uint32 concurrency)
     _maxCnt = maxCnt;
     _objs.resize(maxCnt);
 
-    _netConnector = std::make_unique<NetConnector>();
+    _netConnector = std::make_unique<NetConnector>(this);
     if (!_netConnector->Initialize(maxCnt))
         return false;
+    _netConnectorClosed = false;
 
-    _netWorker = std::make_unique<NetWorkerServer>();
+    _netWorker = std::make_unique<NetWorkerServer>(this);
     if (!_netWorker->Initialize(concurrency))
         return false;
+    _netWorkerClosed = false;
 
     if (!CreateThreads(concurrency))
         return false;
@@ -218,6 +225,29 @@ void NetService::Shutdown()
     if (_netConnector)
         _netConnector->Shutdown();
     _netWorker->Deactivate();
+
+    while (!IsChildClosedAll())
+    {
+        Sleep(1000);
+    }
+}
+
+void NetService::OnTerminated(NetServiceChildType childType)
+{
+    switch (childType)
+    {
+    case NET_CTYPE_LISTENER:
+        _netListenerClosed = true;
+        break;
+    case NET_CYPTE_CONNECTOR:
+        _netConnectorClosed = true;
+        break;
+    case NET_CTYPE_NETWORKER:
+        _netWorkerClosed = true;
+        break;
+    default:
+        break;
+    }
 }
 
 } //namespace RefLib

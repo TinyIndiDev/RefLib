@@ -4,6 +4,7 @@
 #include "reflib_net_acceptor.h"
 #include "reflib_net_connection.h"
 #include "reflib_net_connection_manager.h"
+#include "reflib_net_service.h"
 #include "reflib_net_obj.h"
 #include "reflib_net_api.h"
 #include "reflib_util.h"
@@ -11,7 +12,8 @@
 namespace RefLib
 {
 
-NetListener::NetListener()
+NetListener::NetListener(NetService* container)
+    : _container(container)
 {
 }
 
@@ -112,6 +114,11 @@ void NetListener::Shutdown()
 
     if (_connMgr)
         _connMgr->Shutdown();
+}
+
+void NetListener::OnTerminated()
+{
+    //TODO: Call OnTerminated of NetService if all connections are disconnected.
 }
 
 } // namespace RefLib

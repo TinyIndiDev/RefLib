@@ -2,13 +2,15 @@
 
 #include "reflib_net_worker_server.h"
 #include "reflib_net_socket.h"
+#include "reflib_net_service.h"
 #include "reflib_net_api.h"
 
 namespace RefLib
 {
 
-NetWorkerServer::NetWorkerServer()
+NetWorkerServer::NetWorkerServer(NetService* container)
     : _completionPort(INVALID_HANDLE_VALUE)
+    , _container(container)
 {
 }
 
@@ -92,6 +94,14 @@ void NetWorkerServer::HandleIO(NetSocketBase* sockObj, NetCompletionOP* bufObj, 
 
         sockObj->OnCompletionSuccess(bufObj, bytesTransfered);
     }
+}
+
+bool NetWorkerServer::OnTerminated()
+{
+    if (_container)
+        _container->OnTerminated(NET_CTYPE_NETWORKER);
+
+    return true;
 }
 
 } // RefLib

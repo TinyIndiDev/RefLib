@@ -22,12 +22,6 @@ void RunService(std::weak_ptr<GameNetObj> obj)
     p->Send((char*)msg.c_str(), (uint16)msg.length() + 1);
 }
 
-void CloseMessage()
-{
-    std::cout << "Press enter to quit: ";
-    getchar();
-}
-
 int main()
 {
     std::string ipStr = "127.0.0.1";
@@ -54,7 +48,8 @@ int main()
 
     netService->Shutdown();
 
-    CloseMessage();
+    std::cout << "Press enter to quit: ";
+    getchar();
 
     return 0;
 }

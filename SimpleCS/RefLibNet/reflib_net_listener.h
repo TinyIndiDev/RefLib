@@ -11,16 +11,19 @@ class NetAcceptor;
 class NetCompletionOP;
 class NetConnection;
 class NetConnectionMgr;
+class NetService;
 
 class NetListener : public NetSocketBase
 {
 public:
-    NetListener();
+    NetListener(NetService* container);
     ~NetListener();
 
     bool Initialize(unsigned maxCnt);
     bool Listen(unsigned port);
     void Shutdown();
+
+    void OnTerminated();
 
     std::weak_ptr<NetConnection> RegisterCon();
 
@@ -32,6 +35,7 @@ private:
 
     std::shared_ptr<NetConnectionMgr> _connMgr;
     std::unique_ptr<NetAcceptor> _acceptor;
+    NetService* _container;
 };
 
 } // namespace RefLib

@@ -3,6 +3,7 @@
 #include "reflib_net_connector.h"
 #include "reflib_net_connection.h"
 #include "reflib_net_connection_manager.h"
+#include "reflib_net_service.h"
 #include "reflib_net_obj.h"
 #include "reflib_net_api.h"
 #include "reflib_util.h"
@@ -10,7 +11,8 @@
 namespace RefLib
 {
 
-NetConnector::NetConnector()
+NetConnector::NetConnector(NetService* container)
+    : _container(container)
 {
 }
 
@@ -60,6 +62,11 @@ bool NetConnector::Connect(const std::string& ipStr, uint32 port, std::weak_ptr<
 void NetConnector::Shutdown()
 {
     _connMgr->Shutdown();
+}
+
+void NetConnector::OnTerminated()
+{
+    //TODO: Call OnTerminated of NetService if all connections are disconnected.
 }
 
 } // namespace RefLib

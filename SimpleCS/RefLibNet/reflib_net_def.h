@@ -25,3 +25,10 @@ enum NetCloseType
     NET_CTYPE_SHUTDOWN,
 };
 
+enum NetServiceChildType
+{
+    NET_CTYPE_LISTENER,
+    NET_CYPTE_CONNECTOR,
+    NET_CTYPE_NETWORKER,
+};
+

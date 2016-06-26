@@ -74,9 +74,4 @@ void NetConnector::OnTerminated()
         _container->OnTerminated(NET_CYPTE_CONNECTOR);
 }
 
-void NetConnector::OnTerminated()
-{
-    //TODO: Call OnTerminated of NetService if all connections are disconnected.
-}
-
 } // namespace RefLib

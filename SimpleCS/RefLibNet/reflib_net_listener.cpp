@@ -126,9 +126,4 @@ void NetListener::OnTerminated()
         _container->OnTerminated(NET_CTYPE_LISTENER);
 }
 
-void NetListener::OnTerminated()
-{
-    //TODO: Call OnTerminated of NetService if all connections are disconnected.
-}
-
 } // namespace RefLib

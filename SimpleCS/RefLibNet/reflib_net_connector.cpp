@@ -62,6 +62,16 @@ bool NetConnector::Connect(const std::string& ipStr, uint32 port, std::weak_ptr<
 void NetConnector::Shutdown()
 {
     _connMgr->Shutdown();
+
+    // temporary for debugging purpose
+    OnTerminated();
+}
+
+void NetConnector::OnTerminated()
+{
+    //TODO: Call OnTerminated of NetService if all connections are disconnected.
+    if (_container)
+        _container->OnTerminated(NET_CYPTE_CONNECTOR);
 }
 
 void NetConnector::OnTerminated()

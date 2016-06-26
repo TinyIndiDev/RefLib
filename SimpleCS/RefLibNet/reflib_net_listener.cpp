@@ -114,6 +114,16 @@ void NetListener::Shutdown()
 
     if (_connMgr)
         _connMgr->Shutdown();
+
+    // temporary for debugging purpose
+    OnTerminated();
+}
+
+void NetListener::OnTerminated()
+{
+    //TODO: Call OnTerminated of NetService if all connections are disconnected.
+    if (_container)
+        _container->OnTerminated(NET_CTYPE_LISTENER);
 }
 
 void NetListener::OnTerminated()

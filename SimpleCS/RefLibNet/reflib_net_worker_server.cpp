@@ -96,6 +96,17 @@ void NetWorkerServer::HandleIO(NetSocketBase* sockObj, NetCompletionOP* bufObj, 
     }
 }
 
+bool NetWorkerServer::OnTimeout()
+{
+    if (!RunableThreads::OnTimeout())
+        return false;
+
+    if (_container)
+        _container->OnTerminated(NET_CTYPE_NETWORKER);
+
+    return true;
+}
+
 bool NetWorkerServer::OnTerminated()
 {
     if (_container)

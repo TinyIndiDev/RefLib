@@ -20,6 +20,7 @@ public:
     virtual ~NetWorkerServer() {}
 
     virtual bool Initialize(unsigned int concurrency);
+    virtual bool OnTimeout() override;
     virtual bool OnTerminated() override;
 
 protected:

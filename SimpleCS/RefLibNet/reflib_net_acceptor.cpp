@@ -24,7 +24,7 @@ NetAcceptor::~NetAcceptor()
 
 void NetAcceptor::Accepts()
 {
-    _pendingAccepts.reserve(NETWORK_DEFAULT_OVERLAPPED_COUNT);
+    _pendingAccepts.resize(NETWORK_DEFAULT_OVERLAPPED_COUNT, nullptr);
 
     for (int i = 0; i < NETWORK_DEFAULT_OVERLAPPED_COUNT; ++i)
     {

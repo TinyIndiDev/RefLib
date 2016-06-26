@@ -149,6 +149,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="loki_threads.h" />
     <ClInclude Include="reflib_composit_id.h" />
     <ClInclude Include="reflib_def.h" />
     <ClInclude Include="reflib_memory_block.h" />
@@ -156,7 +157,7 @@
     <ClInclude Include="reflib_non_copyable.h" />
     <ClInclude Include="reflib_runable_threads.h" />
     <ClInclude Include="reflib_safelock.h" />
-    <ClInclude Include="reflib_singleton.h" />
+    <ClInclude Include="loki_singleton.h" />
     <ClInclude Include="reflib_type_def.h" />
     <ClInclude Include="reflib_util.h" />
     <ClInclude Include="stdafx.h" />

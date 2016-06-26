@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 
+#include <iostream>
 #include "reflib_net_service.h"
 #include "reflib_net_api.h"
 #include "game_net_obj.h"
@@ -11,10 +12,27 @@
 
 using namespace RefLib;
 
+void RunService(std::weak_ptr<GameNetObj> obj)
+{
+    auto p = obj.lock();
+
+    std::cout << "Sending packet" << std::endl;
+
+    std::string msg = "hello";
+    p->Send((char*)msg.c_str(), (uint16)msg.length() + 1);
+}
+
+void CloseMessage()
+{
+    std::cout << "Press enter to quit: ";
+    getchar();
+}
+
 int main()
 {
     std::string ipStr = "127.0.0.1";
     uint32 port = 5150;
+    uint32 maxConn = 1;
 
     SYSTEM_INFO sysInfo;
     GetSystemInfo(&sysInfo);
@@ -25,21 +43,18 @@ int main()
         return -1;
 
     auto netService = std::make_shared<NetService>();
-
-    uint32 maxConn = 1;
     if (!netService->InitClient(maxConn, sysInfo.dwNumberOfProcessors))
         return -1;
 
     auto obj = std::make_shared<GameNetObj>(netService);
-    netService->Register(obj);
+    if (!netService->Connect(ipStr, port, obj))
+        return -1;
 
-    obj->Connect(ipStr, port);
-
-    //send packet
-    std::string msg = "hello";
-    obj->Send((char*)msg.c_str(), (uint16)msg.length()+1);
+    RunService(obj);
 
     netService->Shutdown();
+
+    CloseMessage();
 
     return 0;
 }

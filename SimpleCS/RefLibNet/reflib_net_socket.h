@@ -23,15 +23,16 @@ public:
         _data.push(data);
     }
 
-    bool PopData(MemoryBlock* buffer) 
+    MemoryBlock* PopData()
     {
+        MemoryBlock* buffer = nullptr;
+
         if (!_data.empty())
         {
             buffer = _data.front();
             _data.pop();
-            return true;
         }
-        return false;
+        return buffer;
     }
 
 private:

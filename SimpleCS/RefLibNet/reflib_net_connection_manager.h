@@ -19,7 +19,7 @@ public:
     ~NetConnectionMgr();
 
     bool Initialize(unsigned reserve);
-    std::weak_ptr<NetConnection> Register();
+    std::weak_ptr<NetConnection> RegisterCon();
     void Shutdown();
 
     std::weak_ptr<NetConnection> AllocNetConn();

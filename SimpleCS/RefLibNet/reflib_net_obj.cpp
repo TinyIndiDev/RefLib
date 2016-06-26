@@ -62,21 +62,12 @@ void NetObj::Reset()
     }
 }
 
-bool NetObj::Connect(const std::string& ipStr, uint32 port)
+bool NetObj::Connect(SOCKET sock, const SOCKADDR_IN& addr)
 {
-    SOCKADDR_IN addr;
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(port);
-    if (inet_pton(AF_INET, ipStr.c_str(), &addr.sin_addr) != 1)
-    {
-        DebugPrint("Connect: inet_pton failed due to the invalid ip address.");
-        return false;
-    }
+    auto p = _conn.lock();
+    REFLIB_ASSERT_RETURN_VAL_IF_FAILED(p, "NetConn is null", false);
 
-    if (auto p = _conn.lock())
-        return p->Connect(addr);
-
-    return false;
+    return p->Connect(sock, addr);
 }
 
 void NetObj::OnDisconnected()

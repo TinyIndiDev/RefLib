@@ -186,6 +186,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="reflib_circular_buffer.h" />
+    <ClInclude Include="reflib_net_connector.h" />
     <ClInclude Include="reflib_net_obj.h" />
     <ClInclude Include="reflib_net_service.h" />
     <ClInclude Include="reflib_net_acceptor.h" />
@@ -209,6 +210,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="reflib_circular_buffer.cpp" />
+    <ClCompile Include="reflib_net_connector.cpp" />
     <ClCompile Include="reflib_net_obj.cpp" />
     <ClCompile Include="reflib_net_service.cpp" />
     <ClCompile Include="reflib_net_acceptor.cpp" />

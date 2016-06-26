@@ -1,13 +1,13 @@
 #pragma once
 
 #include <concurrent_queue.h>
-#include "reflib_singleton.h"
+#include "loki_singleton.h"
 #include "reflib_memory_block.h"
 
 namespace RefLib
 {
 
-class MemoryPool : public Singleton<MemoryPool>
+class MemoryPool
 {
 public:
     MemoryPool();
@@ -26,4 +26,5 @@ private:
 
 } // namespace RefLib
 
-#define g_memoryPool Singleton<MemoryPool>::GetSingleton()
+typedef Loki::SingletonHolder<RefLib::MemoryPool> MemoryPoolTypeSingleton;
+#define g_memoryPool MemoryPoolTypeSingleton::Instance()

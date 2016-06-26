@@ -5,6 +5,7 @@
 #include "reflib_net_connection.h"
 #include "reflib_net_connection_manager.h"
 #include "reflib_net_listener.h"
+#include "reflib_net_connector.h"
 #include "reflib_net_worker_server.h"
 #include "reflib_net_obj.h"
 
@@ -36,7 +37,7 @@ bool NetService::InitServer(unsigned port, uint32 maxCnt, uint32 concurrency)
     }
 
     _maxCnt = maxCnt;
-    _objs.reserve(maxCnt);
+    _objs.resize(maxCnt);
 
     _netListener = std::make_unique<NetListener>();
     if (!_netListener->Initialize(maxCnt))
@@ -66,7 +67,11 @@ bool NetService::InitClient(uint32 maxCnt, uint32 concurrency)
     }
 
     _maxCnt = maxCnt;
-    _objs.reserve(maxCnt);
+    _objs.resize(maxCnt);
+
+    _netConnector = std::make_unique<NetConnector>();
+    if (!_netConnector->Initialize(maxCnt))
+        return false;
 
     _netWorker = std::make_unique<NetWorkerServer>();
     if (!_netWorker->Initialize(concurrency))
@@ -80,16 +85,50 @@ bool NetService::InitClient(uint32 maxCnt, uint32 concurrency)
     return true;
 }
 
-bool NetService::Register(std::weak_ptr<NetObj> obj)
+bool NetService::AddListening(std::weak_ptr<NetObj> obj)
 {
-    auto p = obj.lock();
-    if (!p)
+    return RegisterToListener(obj);
+}
+
+bool NetService::Connect(const std::string& ipStr, uint32 port, std::weak_ptr<NetObj> obj)
+{
+    if (!RegisterToConnector(obj))
         return false;
 
-    auto conn = _netListener->RegisterNetConnection().lock();
-    if (!conn)
-        return false;
-    
+    return _netConnector->Connect(ipStr, port, obj);
+}
+
+bool NetService::RegisterToListener(std::weak_ptr<NetObj> obj)
+{
+    auto p = obj.lock();
+    if (!p) return false;
+
+    auto conn = _netListener->RegisterCon().lock();
+    if (!conn) return false;
+
+    if (p->Initialize(conn))
+    {
+        conn->RegisterParent(p);
+
+        SafeLock::Owner lock(_freeLock);
+
+        uint32 slot = static_cast<uint32>(_freeObjs.size());
+        _freeObjs.emplace(slot, p);
+
+        return true;
+    }
+
+    return false;
+}
+
+bool NetService::RegisterToConnector(std::weak_ptr<NetObj> obj)
+{
+    auto p = obj.lock();
+    if (!p) return false;
+
+    auto conn = _netConnector->RegisterCon().lock();
+    if (!conn) return false;
+
     if (p->Initialize(conn))
     {
         conn->RegisterParent(p);
@@ -174,7 +213,10 @@ unsigned NetService::Run()
 
 void NetService::Shutdown()
 {
-    _netListener->Shutdown();
+    if (_netListener)
+        _netListener->Shutdown();
+    if (_netConnector)
+        _netConnector->Shutdown();
     _netWorker->Deactivate();
 }
 

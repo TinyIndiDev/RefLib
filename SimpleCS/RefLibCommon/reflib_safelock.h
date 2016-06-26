@@ -13,11 +13,11 @@ public:
     public:
         explicit Owner(SafeLock &crit) : _crit(crit)
         {
-            _crit.Enter();
+            _crit.Lock();
         }
         ~Owner()
         {
-            _crit.Leave();
+            _crit.Unlock();
         }
 
     private:
@@ -28,8 +28,8 @@ public:
     ~SafeLock();
 
 private:
-    void Enter();
-    void Leave();
+    void Lock();
+    void Unlock();
 
     CRITICAL_SECTION _crit;
 };

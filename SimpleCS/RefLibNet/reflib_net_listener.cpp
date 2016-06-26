@@ -1,4 +1,5 @@
 #include "stdafx.h"
+
 #include "reflib_net_listener.h"
 #include "reflib_net_acceptor.h"
 #include "reflib_net_connection.h"
@@ -25,9 +26,9 @@ bool NetListener::Initialize(unsigned maxCnt)
     return _connMgr->Initialize(maxCnt);
 }
 
-std::weak_ptr<NetConnection> NetListener::RegisterNetConnection()
+std::weak_ptr<NetConnection> NetListener::RegisterCon()
 {
-    return _connMgr ? _connMgr->Register() : std::weak_ptr<NetConnection>();
+    return _connMgr ? _connMgr->RegisterCon() : std::weak_ptr<NetConnection>();
 }
 
 bool NetListener::Listen(unsigned port)
@@ -57,7 +58,7 @@ bool NetListener::Listen(unsigned port)
     HANDLE hrc = CreateIoCompletionPort((HANDLE)GetSocket(), completionPort, (ULONG_PTR)this, 0);
     if (hrc == NULL)
     {
-        DebugPrint("CreateIoCompletionPort failed: %d\n", GetLastError());
+        DebugPrint("CreateIoCompletionPort failed: %d", GetLastError());
         return false;
     }
 
@@ -72,7 +73,7 @@ bool NetListener::Listen(unsigned port)
 
 void NetListener::OnCompletionFailure(NetCompletionOP* bufObj, DWORD bytesTransfered, int error)
 {
-    DebugPrint("OP = %d; Error = %d\n", bufObj->GetOP(), error);
+    DebugPrint("OP = %d; Error = %d", bufObj->GetOP(), error);
     return;
 }
 
@@ -108,7 +109,9 @@ void NetListener::OnAccept(NetCompletionOP* bufObj)
 void NetListener::Shutdown()
 {
     Disconnect(NET_CTYPE_SHUTDOWN);
-    _connMgr->Shutdown();
+
+    if (_connMgr)
+        _connMgr->Shutdown();
 }
 
 } // namespace RefLib

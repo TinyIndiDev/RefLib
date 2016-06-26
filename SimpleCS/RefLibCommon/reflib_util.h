@@ -6,10 +6,8 @@
 #define REFLIB_ASSERT(COND, MSG) \
         assert((COND) && (MSG))
 #define REFLIB_ASSERT_RETURN_IF_FAILED(COND, MSG)  \
-        REFLIB_ASSERT((COND), (MSG)); \
-        return;
+        if (!(COND)) { REFLIB_ASSERT((COND), (MSG)); return; }
 #define REFLIB_ASSERT_RETURN_VAL_IF_FAILED(COND, MSG, VAL) \
-        REFLIB_ASSERT((COND), (MSG)); \
-        return (VAL);
+        if (!(COND)) { REFLIB_ASSERT((COND), (MSG)); return (VAL); }
 
 void DebugPrint(char *format, ...);

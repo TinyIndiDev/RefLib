@@ -42,9 +42,6 @@
     <ClInclude Include="reflib_safelock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="reflib_singleton.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="reflib_type_def.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -52,6 +49,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="reflib_def.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="loki_singleton.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="loki_threads.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

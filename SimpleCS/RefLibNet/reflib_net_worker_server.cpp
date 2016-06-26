@@ -38,7 +38,7 @@ unsigned NetWorkerServer::Run()
     
     DWORD   bytesTransfered;
     DWORD   flags;
-    int     rc;
+    BOOL     rc;
     int     error;
 
     while (true)
@@ -58,7 +58,7 @@ unsigned NetWorkerServer::Run()
         {
             // If the call fails, call WSAGetOverlappedResult to translate the
             // error code into a Winsock error code.
-            DebugPrint("CompletionThread: GetQueuedCompletionStatus failed: %d\n", GetLastError());
+            DebugPrint("CompletionThread: GetQueuedCompletionStatus failed: %d", GetLastError());
             rc = WSAGetOverlappedResult(
                 sockObj->GetSocket(),
                 lpOverlapped,

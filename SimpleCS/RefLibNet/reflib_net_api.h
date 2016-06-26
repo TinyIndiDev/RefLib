@@ -1,7 +1,7 @@
 #pragma once
 
 #include <map>
-#include "reflib_singleton.h"
+#include "loki_singleton.h"
 
 namespace RefLib
 {
@@ -9,7 +9,7 @@ namespace RefLib
 class AcceptBuffer;
 class NetCompletionOP;
 
-class NetworkAPI : public Singleton<NetworkAPI>
+class NetworkAPI
 {
 public:
     NetworkAPI();
@@ -42,4 +42,5 @@ private:
 
 } // namespace RefLib
 
-#define g_network Singleton<NetworkAPI>::GetSingleton()
+typedef Loki::SingletonHolder<RefLib::NetworkAPI> NetworkAPITypeSingleton;
+#define g_network NetworkAPITypeSingleton::Instance()

@@ -15,12 +15,12 @@ SafeLock::~SafeLock()
     ::DeleteCriticalSection(&_crit);
 }
 
-void SafeLock::Enter()
+void SafeLock::Lock()
 {
     ::EnterCriticalSection(&_crit);
 }
 
-void SafeLock::Leave()
+void SafeLock::Unlock()
 {
     ::LeaveCriticalSection(&_crit);
 }

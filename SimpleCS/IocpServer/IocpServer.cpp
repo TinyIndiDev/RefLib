@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 
+#include <iostream>
 #include "reflib_net_service.h"
 #include "reflib_net_api.h"
 #include "game_net_obj.h"
@@ -11,9 +12,21 @@
 
 using namespace RefLib;
 
+void RunService()
+{
+    std::string cmd;
+
+    while (cmd.compare("quit") != 0)
+    {
+        std::cout << "Enter 'quit' to exit program: ";
+        std::getline(std::cin, cmd);
+    }
+}
+
 int main()
 {
     unsigned port = 5150;
+    unsigned maxConn = 3000;
 
     SYSTEM_INFO sysInfo;
     GetSystemInfo(&sysInfo);
@@ -24,16 +37,16 @@ int main()
         return -1;
 
     auto netService = std::make_shared<NetService>();
-
-    unsigned maxConn = 3000;
     if (!netService->InitServer(port, maxConn, sysInfo.dwNumberOfProcessors))
         return -1;
 
     for (int i = 0; i < 10; ++i)
     {
         auto obj = std::make_shared<GameNetObj>(netService);
-        netService->Register(obj);
+        netService->AddListening(obj);
     }
+
+    RunService();
 
     netService->Shutdown();
 

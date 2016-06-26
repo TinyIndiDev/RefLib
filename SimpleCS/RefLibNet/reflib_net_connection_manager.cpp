@@ -22,7 +22,7 @@ bool NetConnectionMgr::Initialize(unsigned reserve)
     return true;
 }
 
-std::weak_ptr<NetConnection> NetConnectionMgr::Register()
+std::weak_ptr<NetConnection> NetConnectionMgr::RegisterCon()
 {
     if (_capacity <= _lastIndex)
         return std::weak_ptr<NetConnection>();

@@ -24,15 +24,8 @@ void NetSocketBase::SetSocket(SOCKET sock)
     _socket.exchange(sock); 
 }
 
-bool NetSocketBase::Connect(const SOCKADDR_IN& addr)
+bool NetSocketBase::Connect(SOCKET sock, const SOCKADDR_IN& addr)
 {
-    SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock == INVALID_SOCKET)
-    {
-        DebugPrint("Cannot create listen socket: %s", SocketGetLastErrorString());
-        return false;
-    }
-
     SetSocket(sock);
 
     _netStatus.fetch_or(NET_STATUS_CONN_PENDING);
@@ -45,7 +38,7 @@ void NetSocketBase::Disconnect(NetCloseType closer)
 {
     _netStatus.fetch_or(NET_STATUS_CLOSE_PENDING);
     _connectOP->Reset();
-    _connectOP->SetSocket(_socket);
+    _connectOP->SetSocket(INVALID_SOCKET);
     g_network.Disconnect(_disconnectOP, closer);
 }
 

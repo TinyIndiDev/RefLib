@@ -12,6 +12,7 @@ namespace RefLib
 
 class NetObj;
 class NetListener;
+class NetConnector;
 class NetWorkerServer;
 
 class NetService
@@ -25,7 +26,8 @@ public:
     bool InitClient(uint32 maxCnt, uint32 concurrency);
     void Shutdown();
 
-    bool Register(std::weak_ptr<NetObj> obj);
+    bool AddListening(std::weak_ptr<NetObj> obj);
+    bool Connect(const std::string& ipStr, uint32 port, std::weak_ptr<NetObj> obj);
 
     HANDLE GetCompletionPort() const { return _comPort; }
     std::weak_ptr<NetObj> GetNetObj(const CompositId& id);
@@ -34,6 +36,9 @@ public:
     bool FreeNetObj(const CompositId& id);
 
 protected:
+    bool RegisterToListener(std::weak_ptr<NetObj> obj);
+    bool RegisterToConnector(std::weak_ptr<NetObj> obj);
+
     // run by thread
     virtual unsigned Run() override;
 
@@ -44,6 +49,7 @@ private:
     GAME_NET_OBJS _objs;
     FREE_NET_OBJS _freeObjs;
 
+    std::unique_ptr<NetConnector> _netConnector;
     std::unique_ptr<NetListener> _netListener;
     std::unique_ptr<NetWorkerServer> _netWorker;
 

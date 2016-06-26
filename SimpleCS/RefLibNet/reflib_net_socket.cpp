@@ -15,9 +15,9 @@ namespace RefLib
 
 NetIoBuffer::~NetIoBuffer()
 {
-    MemoryBlock* buffer = nullptr;
+    MemoryBlock* buffer;
 
-    while (PopData(buffer))
+    while (buffer = PopData())
     {
         g_memoryPool.FreeBuffer(buffer);
     }
@@ -92,9 +92,10 @@ bool NetSocket::PostRecv()
     {
         if (WSAGetLastError() != WSA_IO_PENDING)
         {
+            delete recvOP;
+
             DebugPrint("PostRecv: WSARecv* failed: %s", SocketGetLastErrorString());
             Disconnect(NET_CTYPE_SYSTEM);
-            delete recvOP;
 
             return false;
         }
@@ -140,22 +141,27 @@ void NetSocket::PrepareSend()
 bool NetSocket::PostSend()
 {
     int status = _netStatus.load();
-    int expected = status | NET_STATUS_CONNECTED & (!NET_STATUS_CONN_PENDING) & NET_STATUS_RECV_PENDING 
-        & (~NET_STATUS_SEND_PENDING) & (~NET_STATUS_CLOSE_PENDING);
+    int expected = (status & (~NET_STATUS_RECV_PENDING)) & (NET_STATUS_CONNECTED | NET_STATUS_RECV_PENDING);
     int desired = expected | NET_STATUS_SEND_PENDING;
 
     if (!_netStatus.compare_exchange_weak(expected, desired))
+    {
+        DebugPrint("PostSend: netStatus exchange failed: current(%x)", status);
         return false;
+    }
 
     size_t sendQueueSize = _sendQueue.unsafe_size();
     if (sendQueueSize == 0)
+    {
+        DebugPrint("PostSend: send queue is empty.");
         return false;
+    }
 
     NetIoBuffer* sendOP = new NetIoBuffer(NetCompletionOP::OP_WRITE);
     sendOP->SetSocket(GetSocket());
 
     std::vector<WSABUF> wbufs;
-    wbufs.reserve(sendQueueSize);
+    wbufs.resize(sendQueueSize);
 
     MemoryBlock* buffer = nullptr;
     int idx = 0;
@@ -196,7 +202,7 @@ void NetSocket::OnCompletionFailure(NetCompletionOP* bufObj, DWORD bytesTransfer
 {
     REFLIB_ASSERT_RETURN_IF_FAILED(bufObj, "OnCOmpletionFailure: NetCompletionOP is nullptr.");
 
-    DebugPrint("OP = %d; Error = %d\n", bufObj->GetOP(), error);
+    DebugPrint("OP = %d; Error = %d", bufObj->GetOP(), error);
 
     switch (bufObj->GetOP())
     {
@@ -259,9 +265,9 @@ void NetSocket::OnRecv(NetCompletionOP* recvOP, DWORD bytesTransfered)
     REFLIB_ASSERT_RETURN_IF_FAILED(recvOP, "NetIoBuffer is null");
 
     NetIoBuffer *ioBuffer = reinterpret_cast<NetIoBuffer*>(recvOP);
-    MemoryBlock* buffer = nullptr;
+    MemoryBlock* buffer;
 
-    if (ioBuffer->PopData(buffer))
+    if (buffer = ioBuffer->PopData())
     {
         OnRecvData(buffer->GetData(), bytesTransfered);
     }

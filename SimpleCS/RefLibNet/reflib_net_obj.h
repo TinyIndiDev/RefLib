@@ -21,7 +21,7 @@ public:
 
     virtual bool Initialize(std::weak_ptr<NetConnection> conn);
     virtual bool PostInit();
-    virtual bool Connect(const std::string& ipStr, uint32 port);
+    virtual bool Connect(SOCKET sock, const SOCKADDR_IN& addr);
     virtual void OnRecvPacket()=0;
     virtual void Send(char* data, uint16 dataLen);
     virtual void OnDisconnected();

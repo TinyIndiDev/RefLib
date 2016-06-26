@@ -22,7 +22,7 @@ public:
     bool Listen(unsigned port);
     void Shutdown();
 
-    std::weak_ptr<NetConnection> RegisterNetConnection();
+    std::weak_ptr<NetConnection> RegisterCon();
 
     virtual void OnCompletionSuccess(NetCompletionOP* bufObj, DWORD bytesTransfered) override;
     virtual void OnCompletionFailure(NetCompletionOP* bufObj, DWORD bytesTransfered, int error) override;

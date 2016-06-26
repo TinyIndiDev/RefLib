@@ -133,25 +133,25 @@ unsigned RunableThreads::Join()
 
 bool RunableThreads::OnTimeout()
 {
-    DebugPrint("WaitForMultipleObjects: time out\n");
+    DebugPrint("WaitForMultipleObjects: time out");
     return (_activated == false);
 }
 
 bool RunableThreads::OnTerminated()
 {
-    DebugPrint("WaitForMultipleObjects: terminated\n");
+    DebugPrint("WaitForMultipleObjects: terminated");
     return true;
 }
 
 bool RunableThreads::OnAbandoned()
 {
-    DebugPrint("WaitForMultipleObjects: abandoned (%d)\n", GetLastError());
+    DebugPrint("WaitForMultipleObjects: abandoned (%d)", GetLastError());
     return false;
 }
 
 bool RunableThreads::OnFailed()
 {
-    DebugPrint("WaitForMultipleObjects: failed (%d)\n", GetLastError());
+    DebugPrint("WaitForMultipleObjects: failed (%d)", GetLastError());
     return false;
 }
 

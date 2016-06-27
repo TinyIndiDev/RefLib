@@ -7,9 +7,9 @@
 namespace RefLib
 {
 
-NetAcceptor::NetAcceptor(NetSocketBase* sock, HANDLE complPort)
+NetAcceptor::NetAcceptor(NetSocketBase* sock, HANDLE compPort)
     : _listenSock(sock)
-    , _completionPort(complPort)
+    , _comPort(compPort)
 {
 }
 
@@ -61,15 +61,15 @@ bool NetAcceptor::PostAccept(AcceptBuffer* acceptObj)
 
 void NetAcceptor::OnAccept(std::weak_ptr<NetConnection> clientObj, NetCompletionOP* bufObj)
 {
-    auto conn = clientObj.lock();
-    if (!conn.get())
+    auto con = clientObj.lock();
+    if (!con.get())
         return;
 
     // Associate the new connection to our completion port
     HANDLE hrc = CreateIoCompletionPort(
         (HANDLE)bufObj->GetSocket(),
-        _completionPort,
-        (ULONG_PTR)conn.get(),
+        _comPort,
+        (ULONG_PTR)con.get(),
         0);
     if (hrc == NULL)
     {
@@ -77,7 +77,7 @@ void NetAcceptor::OnAccept(std::weak_ptr<NetConnection> clientObj, NetCompletion
         return;
     }
 
-    conn->OnConnected();
+    con->OnConnected();
 
     // Re-post the AcceptEx
     AcceptBuffer* acceptObj = reinterpret_cast<AcceptBuffer*>(bufObj);

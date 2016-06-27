@@ -3,33 +3,23 @@
 #include <memory>
 #include "reflib_net_completion.h"
 #include "reflib_net_socket.h"
+#include "reflib_net_connection_proxy.h"
 
 namespace RefLib
 {
 
 class NetAcceptor;
 class NetCompletionOP;
-class NetConnection;
-class NetConnectionMgr;
-class NetService;
 
-class NetConnector
+class NetConnector : public NetConnectionProxy
 {
 public:
     NetConnector(NetService* container);
-    ~NetConnector();
+    virtual ~NetConnector();
 
-    bool Initialize(unsigned maxCnt);
+    virtual NetServiceChildType GetChildType() const { return NET_CYPTE_CONNECTOR; }
+
     bool Connect(const std::string& ipStr, uint32 port, std::weak_ptr<NetObj> obj);
-    void Shutdown();
-
-    void OnTerminated();
-
-    std::weak_ptr<NetConnection> RegisterCon();
-
-private:
-    std::shared_ptr<NetConnectionMgr> _connMgr;
-    NetService* _container;
 };
 
 } // namespace RefLib

@@ -27,23 +27,23 @@ std::weak_ptr<NetConnection> NetConnectionMgr::RegisterCon()
     if (_capacity <= _lastIndex)
         return std::weak_ptr<NetConnection>();
 
-    SafeLock::Owner owner(_connLock);
+    SafeLock::Owner owner(_conLock);
 
     auto p = std::make_shared<NetConnection>(GetNextIndex(), 0);
-    _freeConns.push(p);
+    _freeCons.push(p);
 
     return p;
 }
 
 void NetConnectionMgr::Shutdown()
 {
-    SafeLock::Owner owner(_connLock);
+    SafeLock::Owner owner(_conLock);
 
-    for (auto element : _netConns)
+    for (auto element : _netCons)
     {
-        auto conn = element.second;
-        if (conn.get())
-            conn->Disconnect(NET_CTYPE_SHUTDOWN);
+        auto con = element.second;
+        if (con.get())
+            con->Disconnect(NET_CTYPE_SHUTDOWN);
     }
 }
 
@@ -53,36 +53,43 @@ uint32 NetConnectionMgr::GetNextIndex()
     return (prev + 1);
 }
 
-std::weak_ptr<NetConnection> NetConnectionMgr::AllocNetConn()
+bool NetConnectionMgr::IsEmpty()
 {
-    std::shared_ptr<NetConnection> conn;
+    SafeLock::Owner owner(_conLock);
+    
+    return _netCons.empty();
+}
 
-    SafeLock::Owner owner(_connLock);
+std::weak_ptr<NetConnection> NetConnectionMgr::AllocNetCon()
+{
+    std::shared_ptr<NetConnection> con;
 
-    if (!_freeConns.empty())
+    SafeLock::Owner owner(_conLock);
+
+    if (!_freeCons.empty())
     {
-        conn = _freeConns.front();
-        _freeConns.pop();
+        con = _freeCons.front();
+        _freeCons.pop();
 
-        if (conn.get())
+        if (con.get())
         {
-            conn->IncSalt();
-            _netConns.insert(std::pair<uint64, std::shared_ptr<NetConnection>>(conn->GetCompId().GetIndex(), conn));
+            con->IncSalt();
+            _netCons.insert(std::pair<uint64, std::shared_ptr<NetConnection>>(con->GetCompId().GetIndex(), con));
         }
     }
 
-    return conn;
+    return con;
 }
 
-bool NetConnectionMgr::FreeNetConn(CompositId compId)
+bool NetConnectionMgr::FreeNetCon(CompositId compId)
 {
-    SafeLock::Owner owner(_connLock);
+    SafeLock::Owner owner(_conLock);
 
-    auto it = _netConns.find(compId.GetIndex());
-    if (it != _netConns.end())
+    auto it = _netCons.find(compId.GetIndex());
+    if (it != _netCons.end())
     {
-        _freeConns.push(it->second);
-        _netConns.erase(it);
+        _freeCons.push(it->second);
+        _netCons.erase(it);
 
         return true;
     }

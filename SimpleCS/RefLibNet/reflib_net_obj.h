@@ -17,9 +17,9 @@ public:
     virtual ~NetObj();
 
     CompositId GetCompId() const;
-    std::weak_ptr<NetConnection> GetConn() { return _conn; }
+    std::weak_ptr<NetConnection> GetConn() { return _con; }
 
-    virtual bool Initialize(std::weak_ptr<NetConnection> conn);
+    virtual bool Initialize(std::weak_ptr<NetConnection> con);
     virtual bool PostInit();
     virtual bool Connect(SOCKET sock, const SOCKADDR_IN& addr);
     virtual void OnRecvPacket()=0;
@@ -35,7 +35,7 @@ private:
     Concurrency::concurrent_queue<MemoryBlock*> _recvPackets;
 
     HANDLE _comPort;
-    std::weak_ptr<NetConnection> _conn;
+    std::weak_ptr<NetConnection> _con;
     std::weak_ptr<NetService> _container;
 };
 

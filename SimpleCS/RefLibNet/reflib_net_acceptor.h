@@ -36,7 +36,7 @@ private:
 class NetAcceptor
 {
 public:
-    NetAcceptor(NetSocketBase* sock, HANDLE complPort);
+    NetAcceptor(NetSocketBase* sock, HANDLE compPort);
     ~NetAcceptor();
 
     void Accepts();
@@ -47,7 +47,7 @@ private:
 
     std::vector<AcceptBuffer*> _pendingAccepts;
     NetSocketBase* _listenSock;
-    HANDLE _completionPort;
+    HANDLE _comPort;
 };
 
 } // namespace RefLib

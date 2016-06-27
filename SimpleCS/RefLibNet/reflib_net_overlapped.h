@@ -35,6 +35,16 @@ public:
         Reset();
     }
 
+    NetCompletionOP& operator=(const NetCompletionOP& rhs)
+    {
+        if (this != &rhs)
+        {
+            _client = rhs._client;
+            //TODO copy content of OVERLAPPED
+        }
+        return *this;
+    }
+
     void Reset()
     {
         NetOverlapped::Reset();

@@ -7,13 +7,14 @@ namespace RefLib
 {
 
 class GameObj;
-class NetConnectionMgr;
+class NetConnectionProxy;
 
 class NetConnection : public NetSocket
 {
 public:
     NetConnection(uint32 id, uint32 salt)
         : _id(id, salt)
+        , _container(nullptr)
     {}
 
     CompositId GetCompId() const { return _id; }
@@ -26,7 +27,7 @@ public:
 
     void RegisterParent(std::weak_ptr<NetObj> parent);
 
-    bool Initialize(SOCKET sock, std::weak_ptr<NetConnectionMgr> container);
+    bool Initialize(SOCKET sock, NetConnectionProxy* container);
 
     virtual void RecvPacket(MemoryBlock* packet) override;
     virtual void OnDisconnected() override;
@@ -34,7 +35,7 @@ public:
 private:
     CompositId _id;
     std::weak_ptr<NetObj> _parent;
-    std::weak_ptr<NetConnectionMgr> _container;
+    NetConnectionProxy* _container;
 };
 
 } // namespace RefLib

@@ -29,8 +29,9 @@ protected:
     void HandleIO(NetSocketBase* sock, NetCompletionOP* bufObj, DWORD bytesTransfered, int error);
 
 private:
-    HANDLE _completionPort;
+    HANDLE _comPort;
     NetService* _container;
+    bool _activated;
 };
 
 } // namespace RefLib

@@ -8,7 +8,7 @@ namespace RefLib
 
 NetworkAPI::NetworkAPI()
     : _initialized(false)
-    , _completionPort(INVALID_HANDLE_VALUE)
+    , _comPort(INVALID_HANDLE_VALUE)
     , _lpfnAcceptEx(nullptr)
     , _lpfnGetAcceptExSockaddrs(nullptr)
     , _lpfnConnectEx(nullptr)
@@ -37,8 +37,8 @@ bool NetworkAPI::Initialize()
 
     _initialized = true;
 
-    _completionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, (ULONG_PTR)nullptr, 0);
-    if (_completionPort == nullptr)
+    _comPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, (ULONG_PTR)nullptr, 0);
+    if (_comPort == nullptr)
     {
         DebugPrint("CreateIoCompletionPort failed: %d", GetLastError());
         return false;

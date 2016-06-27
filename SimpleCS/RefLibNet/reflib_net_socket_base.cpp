@@ -37,8 +37,8 @@ bool NetSocketBase::Connect(SOCKET sock, const SOCKADDR_IN& addr)
 void NetSocketBase::Disconnect(NetCloseType closer)
 {
     _netStatus.fetch_or(NET_STATUS_CLOSE_PENDING);
-    _connectOP->Reset();
-    _connectOP->SetSocket(INVALID_SOCKET);
+    _disconnectOP->Reset();
+    _disconnectOP->SetSocket(_socket);
     g_network.Disconnect(_disconnectOP, closer);
 }
 

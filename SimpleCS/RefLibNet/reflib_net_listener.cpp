@@ -13,24 +13,12 @@ namespace RefLib
 {
 
 NetListener::NetListener(NetService* container)
-    : _container(container)
+    : NetConnectionProxy(container)
 {
 }
 
 NetListener::~NetListener()
 {
-}
-
-bool NetListener::Initialize(unsigned maxCnt)
-{
-    _connMgr = std::make_shared<NetConnectionMgr>();
-
-    return _connMgr->Initialize(maxCnt);
-}
-
-std::weak_ptr<NetConnection> NetListener::RegisterCon()
-{
-    return _connMgr ? _connMgr->RegisterCon() : std::weak_ptr<NetConnection>();
 }
 
 bool NetListener::Listen(unsigned port)
@@ -97,33 +85,15 @@ void NetListener::OnCompletionSuccess(NetCompletionOP* bufObj, DWORD bytesTransf
 
 void NetListener::OnAccept(NetCompletionOP* bufObj)
 {
-    if (!_connMgr) return;
-
-    auto conn = _connMgr->AllocNetConn().lock();
-    if (!conn) return;
-
-    if (!conn->Initialize(bufObj->GetSocket(), _connMgr))
-        return;
-
-    _acceptor->OnAccept(conn, bufObj);
+    auto con = NetConnectionProxy::AllocNetCon(bufObj->GetSocket()).lock();
+    if (con)
+        _acceptor->OnAccept(con, bufObj);
 }
 
 void NetListener::Shutdown()
 {
     Disconnect(NET_CTYPE_SHUTDOWN);
-
-    if (_connMgr)
-        _connMgr->Shutdown();
-
-    // temporary for debugging purpose
-    OnTerminated();
-}
-
-void NetListener::OnTerminated()
-{
-    //TODO: Call OnTerminated of NetService if all connections are disconnected.
-    if (_container)
-        _container->OnTerminated(NET_CTYPE_LISTENER);
+    NetConnectionProxy::Shutdown();
 }
 
 } // namespace RefLib

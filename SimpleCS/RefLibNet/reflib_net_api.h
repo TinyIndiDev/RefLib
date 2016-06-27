@@ -17,7 +17,7 @@ public:
 
     bool Initialize();
 
-    HANDLE GetCompletionPort() const { return _completionPort; }
+    HANDLE GetCompletionPort() const { return _comPort; }
 
     bool Listen(SOCKET listenSock, const SOCKADDR_IN& saLocal);
     bool Accept(SOCKET listenSock, AcceptBuffer* acceptObj);
@@ -34,7 +34,7 @@ private:
     LPFN_CONNECTEX              _lpfnConnectEx;
     LPFN_DISCONNECTEX           _lpfnDisconnectEx;
 
-    HANDLE  _completionPort;
+    HANDLE  _comPort;
     WSADATA _wsd;
 
     bool _initialized;

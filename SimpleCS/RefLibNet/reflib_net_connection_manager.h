@@ -22,8 +22,10 @@ public:
     std::weak_ptr<NetConnection> RegisterCon();
     void Shutdown();
 
-    std::weak_ptr<NetConnection> AllocNetConn();
-    bool FreeNetConn(CompositId compId);
+    std::weak_ptr<NetConnection> AllocNetCon();
+    bool FreeNetCon(CompositId compId);
+
+    bool IsEmpty();
 
 private:
     uint32 GetNextIndex();
@@ -31,9 +33,9 @@ private:
     typedef std::queue<std::shared_ptr<NetConnection>> FREE_CONNS;
     typedef std::map<uint64, std::shared_ptr<NetConnection>> NET_CONNS;
 
-    FREE_CONNS  _freeConns;
-    NET_CONNS   _netConns;
-    SafeLock    _connLock;
+    FREE_CONNS  _freeCons;
+    NET_CONNS   _netCons;
+    SafeLock    _conLock;
 
     std::atomic<uint32> _lastIndex;
     std::atomic<uint32> _capacity;

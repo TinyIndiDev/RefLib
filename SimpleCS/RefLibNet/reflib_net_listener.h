@@ -3,29 +3,24 @@
 #include <memory>
 #include "reflib_net_completion.h"
 #include "reflib_net_socket_base.h"
+#include "reflib_net_connection_proxy.h"
 
 namespace RefLib
 {
 
 class NetAcceptor;
 class NetCompletionOP;
-class NetConnection;
-class NetConnectionMgr;
-class NetService;
 
-class NetListener : public NetSocketBase
+class NetListener : public NetSocketBase, public NetConnectionProxy
 {
 public:
     NetListener(NetService* container);
-    ~NetListener();
+    virtual ~NetListener();
 
-    bool Initialize(unsigned maxCnt);
+    virtual NetServiceChildType GetChildType() const { return NET_CTYPE_LISTENER; }
+    virtual void Shutdown() override;
+
     bool Listen(unsigned port);
-    void Shutdown();
-
-    void OnTerminated();
-
-    std::weak_ptr<NetConnection> RegisterCon();
 
     virtual void OnCompletionSuccess(NetCompletionOP* bufObj, DWORD bytesTransfered) override;
     virtual void OnCompletionFailure(NetCompletionOP* bufObj, DWORD bytesTransfered, int error) override;
@@ -33,9 +28,7 @@ public:
 private:
     void OnAccept(NetCompletionOP* bufObj);
 
-    std::shared_ptr<NetConnectionMgr> _connMgr;
     std::unique_ptr<NetAcceptor> _acceptor;
-    NetService* _container;
 };
 
 } // namespace RefLib

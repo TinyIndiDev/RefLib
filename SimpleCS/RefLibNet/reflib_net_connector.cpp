@@ -1,9 +1,6 @@
 #include "stdafx.h"
 
 #include "reflib_net_connector.h"
-#include "reflib_net_connection.h"
-#include "reflib_net_connection_manager.h"
-#include "reflib_net_service.h"
 #include "reflib_net_obj.h"
 #include "reflib_net_api.h"
 #include "reflib_util.h"
@@ -12,27 +9,12 @@ namespace RefLib
 {
 
 NetConnector::NetConnector(NetService* container)
-    : _container(container)
+    : NetConnectionProxy(container)
 {
 }
 
 NetConnector::~NetConnector()
 {
-}
-
-bool NetConnector::Initialize(unsigned maxCnt)
-{
-    _connMgr = std::make_shared<NetConnectionMgr>();
-    return _connMgr->Initialize(maxCnt);
-}
-
-std::weak_ptr<NetConnection> NetConnector::RegisterCon()
-{
-    auto conn = _connMgr->RegisterCon();
-    if (!conn._Get()) 
-        return conn;
-        
-    return _connMgr->AllocNetConn();
 }
 
 bool NetConnector::Connect(const std::string& ipStr, uint32 port, std::weak_ptr<NetObj> obj)
@@ -57,21 +39,6 @@ bool NetConnector::Connect(const std::string& ipStr, uint32 port, std::weak_ptr<
     }
 
     return p->Connect(sock, addr);
-}
-
-void NetConnector::Shutdown()
-{
-    _connMgr->Shutdown();
-
-    // temporary for debugging purpose
-    OnTerminated();
-}
-
-void NetConnector::OnTerminated()
-{
-    //TODO: Call OnTerminated of NetService if all connections are disconnected.
-    if (_container)
-        _container->OnTerminated(NET_CYPTE_CONNECTOR);
 }
 
 } // namespace RefLib

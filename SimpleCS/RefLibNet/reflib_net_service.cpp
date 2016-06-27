@@ -110,12 +110,12 @@ bool NetService::RegisterToListener(std::weak_ptr<NetObj> obj)
     auto p = obj.lock();
     if (!p) return false;
 
-    auto conn = _netListener->RegisterCon().lock();
-    if (!conn) return false;
+    auto con = _netListener->RegisterCon().lock();
+    if (!con) return false;
 
-    if (p->Initialize(conn))
+    if (p->Initialize(con))
     {
-        conn->RegisterParent(p);
+        con->RegisterParent(p);
 
         SafeLock::Owner lock(_freeLock);
 
@@ -133,12 +133,12 @@ bool NetService::RegisterToConnector(std::weak_ptr<NetObj> obj)
     auto p = obj.lock();
     if (!p) return false;
 
-    auto conn = _netConnector->RegisterCon().lock();
-    if (!conn) return false;
+    auto con = _netConnector->RegisterCon().lock();
+    if (!con) return false;
 
-    if (p->Initialize(conn))
+    if (p->Initialize(con))
     {
-        conn->RegisterParent(p);
+        con->RegisterParent(p);
 
         SafeLock::Owner lock(_freeLock);
 
@@ -210,10 +210,13 @@ unsigned NetService::Run()
             INFINITE);
 
         NetObj* obj = (NetObj*)ulKey;
-        if (obj)
+        if (!obj)
         {
-            obj->OnRecvPacket();
+            DebugPrint("NetService::Run received shutdown signal");
+            break;
         }
+
+        obj->OnRecvPacket();
     }    
     return 0;
 }
@@ -222,9 +225,9 @@ void NetService::Shutdown()
 {
     if (_netListener)
         _netListener->Shutdown();
+    
     if (_netConnector)
         _netConnector->Shutdown();
-    _netWorker->Deactivate();
 
     while (!IsChildClosedAll())
     {
@@ -238,12 +241,15 @@ void NetService::OnTerminated(NetServiceChildType childType)
     {
     case NET_CTYPE_LISTENER:
         _netListenerClosed = true;
+        _netWorker->Deactivate();
         break;
     case NET_CYPTE_CONNECTOR:
         _netConnectorClosed = true;
+        _netWorker->Deactivate();
         break;
     case NET_CTYPE_NETWORKER:
         _netWorkerClosed = true;
+        ::PostQueuedCompletionStatus(_comPort, 0, NULL, NULL);
         break;
     default:
         break;

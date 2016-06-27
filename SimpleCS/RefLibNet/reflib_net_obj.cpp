@@ -25,17 +25,17 @@ NetObj::~NetObj()
 
 CompositId NetObj::GetCompId() const
 { 
-    if (auto p = _conn.lock())
+    if (auto p = _con.lock())
         return p->GetCompId();
 
     return INVALID_OBJ_ID;
 }
 
-bool NetObj::Initialize(std::weak_ptr<NetConnection> conn)
+bool NetObj::Initialize(std::weak_ptr<NetConnection> con)
 {
-    if (auto p = conn.lock())
+    if (auto p = con.lock())
     {
-        _conn = p;
+        _con = p;
         return true;
     }
     return false;
@@ -64,7 +64,7 @@ void NetObj::Reset()
 
 bool NetObj::Connect(SOCKET sock, const SOCKADDR_IN& addr)
 {
-    auto p = _conn.lock();
+    auto p = _con.lock();
     REFLIB_ASSERT_RETURN_VAL_IF_FAILED(p, "NetConn is null", false);
 
     return p->Connect(sock, addr);
@@ -97,7 +97,7 @@ MemoryBlock* NetObj::PopRecvPacket()
 
 void NetObj::Send(char* data, uint16 dataLen)
 {
-    if (auto p = _conn.lock())
+    if (auto p = _con.lock())
         p->Send(data, dataLen);
 }
 

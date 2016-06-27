@@ -9,20 +9,22 @@ namespace RefLib
 {
 
 NetWorkerServer::NetWorkerServer(NetService* container)
-    : _completionPort(INVALID_HANDLE_VALUE)
+    : _comPort(INVALID_HANDLE_VALUE)
     , _container(container)
+    , _activated(false)
 {
 }
 
 bool NetWorkerServer::Initialize(unsigned int concurrency)
 {
-    _completionPort = g_network.GetCompletionPort();
-    if (_completionPort == INVALID_HANDLE_VALUE)
+    _comPort = g_network.GetCompletionPort();
+    if (_comPort == INVALID_HANDLE_VALUE)
     {
         DebugPrint("Completion port is null");
         return false;
     }
 
+    _activated = true;
     if (!CreateThreads(concurrency))
         return false;
 
@@ -43,16 +45,22 @@ unsigned NetWorkerServer::Run()
     BOOL     rc;
     int     error;
 
-    while (true)
+    while (_activated)
     {
         error = NO_ERROR;
 
         rc = GetQueuedCompletionStatus(
-            _completionPort,
+            _comPort,
             &bytesTransfered,
             (PULONG_PTR)&sockObj,
             &lpOverlapped,
             INFINITE);
+
+        if (!sockObj)
+        {
+            DebugPrint("NetWorkerServer::Run received shutdown signal");
+            break;
+        }
 
         bufObj = reinterpret_cast<NetCompletionOP*>(lpOverlapped);
 
@@ -101,6 +109,8 @@ bool NetWorkerServer::OnTimeout()
     if (!RunableThreads::OnTimeout())
         return false;
 
+    _activated = false;
+
     if (_container)
         _container->OnTerminated(NET_CTYPE_NETWORKER);
 
@@ -109,6 +119,8 @@ bool NetWorkerServer::OnTimeout()
 
 bool NetWorkerServer::OnTerminated()
 {
+    _activated = false;
+
     if (_container)
         _container->OnTerminated(NET_CTYPE_NETWORKER);
 

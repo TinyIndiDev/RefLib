@@ -27,6 +27,7 @@ enum NetCloseType
 
 enum NetServiceChildType
 {
+    NET_CTYPE_NA,
     NET_CTYPE_LISTENER,
     NET_CYPTE_CONNECTOR,
     NET_CTYPE_NETWORKER,

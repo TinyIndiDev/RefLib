@@ -48,7 +48,7 @@ int main()
 
     netService->Shutdown();
 
-    std::cout << "Press enter to quit: ";
+    std::cout << "Press enter to quit: " << std::endl;
     getchar();
 
     return 0;

@@ -11,8 +11,7 @@ namespace RefLib
 {
 
 class NetObj;
-class NetListener;
-class NetConnector;
+class NetConnectionProxy;
 class NetWorkerServer;
 
 class NetService
@@ -36,7 +35,6 @@ public:
     bool FreeNetObj(const CompositId& id);
 
     void OnTerminated(NetServiceChildType childType);
-    bool IsChildClosedAll() const { return _netListenerClosed && _netConnectorClosed && _netWorkerClosed; }
 
 protected:
     bool RegisterToListener(std::weak_ptr<NetObj> obj);
@@ -52,12 +50,7 @@ private:
     GAME_NET_OBJS _objs;
     FREE_NET_OBJS _freeObjs;
 
-    std::atomic<bool> _netConnectorClosed;
-    std::atomic<bool> _netListenerClosed;
-    std::atomic<bool> _netWorkerClosed;
-
-    std::unique_ptr<NetConnector> _netConnector;
-    std::unique_ptr<NetListener> _netListener;
+    std::unique_ptr<NetConnectionProxy> _netConnectionProxy;
     std::unique_ptr<NetWorkerServer> _netWorker;
 
     uint32 _maxCnt;

@@ -38,7 +38,7 @@ bool NetListener::Listen(unsigned port)
     SOCKET sClient = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sClient == INVALID_SOCKET)
     {
-        DebugPrint("Cannot create listen socket: %s", SocketGetLastErrorString());
+        DebugPrint("Cannot create listen socket: %s", SocketGetLastErrorString().c_str());
         return false;
     }
 
@@ -63,7 +63,7 @@ bool NetListener::Listen(unsigned port)
 
 void NetListener::OnCompletionFailure(NetCompletionOP* bufObj, DWORD bytesTransfered, int error)
 {
-    DebugPrint("OP = %d; Error = %d", bufObj->GetOP(), error);
+    DebugPrint("NetListener] Socket(%d), OP(%d), Error(%d)", bufObj->GetSocket(), bufObj->GetOP(), error);
     return;
 }
 

@@ -34,7 +34,7 @@ bool NetConnector::Connect(const std::string& ipStr, uint32 port, std::weak_ptr<
     SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock == INVALID_SOCKET)
     {
-        DebugPrint("Cannot create listen socket: %s", SocketGetLastErrorString());
+        DebugPrint("Cannot create listen socket: %s", SocketGetLastErrorString().c_str());
         return false;
     }
 

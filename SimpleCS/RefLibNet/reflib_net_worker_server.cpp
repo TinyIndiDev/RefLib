@@ -11,7 +11,6 @@ namespace RefLib
 NetWorkerServer::NetWorkerServer(NetService* container)
     : _comPort(INVALID_HANDLE_VALUE)
     , _container(container)
-    , _activated(false)
 {
 }
 
@@ -24,7 +23,6 @@ bool NetWorkerServer::Initialize(unsigned int concurrency)
         return false;
     }
 
-    _activated = true;
     if (!CreateThreads(concurrency))
         return false;
 
@@ -32,6 +30,12 @@ bool NetWorkerServer::Initialize(unsigned int concurrency)
     RunableThreads::Activate();
 
     return true;
+}
+
+void NetWorkerServer::Shutdown()
+{
+    RunableThreads::Deactivate();
+    ::PostQueuedCompletionStatus(_comPort, 0, NULL, NULL);
 }
 
 unsigned NetWorkerServer::Run()
@@ -45,7 +49,7 @@ unsigned NetWorkerServer::Run()
     BOOL     rc;
     int     error;
 
-    while (_activated)
+    while (IsActive())
     {
         error = NO_ERROR;
 
@@ -59,16 +63,13 @@ unsigned NetWorkerServer::Run()
         if (!sockObj)
         {
             DebugPrint("NetWorkerServer::Run received shutdown signal");
-            break;
+            continue;
         }
 
         bufObj = reinterpret_cast<NetCompletionOP*>(lpOverlapped);
 
         if (rc == FALSE)
         {
-            // If the call fails, call WSAGetOverlappedResult to translate the
-            // error code into a Winsock error code.
-            DebugPrint("CompletionThread: GetQueuedCompletionStatus failed: %d", GetLastError());
             rc = WSAGetOverlappedResult(
                 sockObj->GetSocket(),
                 lpOverlapped,
@@ -104,27 +105,10 @@ void NetWorkerServer::HandleIO(NetSocketBase* sockObj, NetCompletionOP* bufObj, 
     }
 }
 
-bool NetWorkerServer::OnTimeout()
+void NetWorkerServer::OnDeactivated()
 {
-    if (!RunableThreads::OnTimeout())
-        return false;
-
-    _activated = false;
-
     if (_container)
         _container->OnTerminated(NET_CTYPE_NETWORKER);
-
-    return true;
-}
-
-bool NetWorkerServer::OnTerminated()
-{
-    _activated = false;
-
-    if (_container)
-        _container->OnTerminated(NET_CTYPE_NETWORKER);
-
-    return true;
 }
 
 } // RefLib

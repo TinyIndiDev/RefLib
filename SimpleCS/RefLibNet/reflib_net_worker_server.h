@@ -20,8 +20,9 @@ public:
     virtual ~NetWorkerServer() {}
 
     virtual bool Initialize(unsigned int concurrency);
-    virtual bool OnTimeout() override;
-    virtual bool OnTerminated() override;
+    void Shutdown();
+
+    virtual void OnDeactivated() override;
 
 protected:
     // run by thread
@@ -31,7 +32,6 @@ protected:
 private:
     HANDLE _comPort;
     NetService* _container;
-    bool _activated;
 };
 
 } // namespace RefLib

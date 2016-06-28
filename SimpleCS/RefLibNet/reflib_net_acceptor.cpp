@@ -40,7 +40,7 @@ bool NetAcceptor::PostAccept(AcceptBuffer* acceptObj)
     SOCKET sClient = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sClient == INVALID_SOCKET)
     {
-        DebugPrint("PostAccept failed: %s", SocketGetLastErrorString());
+        DebugPrint("PostAccept failed: %s", SocketGetLastErrorString().c_str());
         return false;
     }
 
@@ -51,9 +51,11 @@ bool NetAcceptor::PostAccept(AcceptBuffer* acceptObj)
     {
         if (WSAGetLastError() != WSA_IO_PENDING)
         {
-            DebugPrint("PostAccept: AcceptEx failed: %s", SocketGetLastErrorString());
+            DebugPrint("AcceptEx failed: %s", SocketGetLastErrorString().c_str());
             return false;
         }
+
+        DebugPrint("PostAccept: socket(%d)", sClient);
     }
 
     return true;
@@ -73,7 +75,7 @@ void NetAcceptor::OnAccept(std::weak_ptr<NetConnection> clientObj, NetCompletion
         0);
     if (hrc == NULL)
     {
-        DebugPrint("CompletionThread: CreateIoCompletionPort failed: %s", SocketGetLastErrorString());
+        DebugPrint("OnAccept failed: %s", SocketGetLastErrorString().c_str());
         return;
     }
 

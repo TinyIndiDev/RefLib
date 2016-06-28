@@ -7,6 +7,8 @@
 
 #include "reflib_runable_threads.h"
 
+#define TIMEOUT_CNT_LIMIT 5
+
 namespace RefLib
 {
 
@@ -116,24 +118,20 @@ unsigned RunableThreads::Join()
         case WAIT_OBJECT_0:
             quit = OnTerminated();
             break;
-        case WAIT_ABANDONED_0:
-            quit = OnAbandoned();
-            break;
         case WAIT_TIMEOUT:
             quit = OnTimeout();
             break;
-        case WAIT_FAILED:
-            quit = OnFailed();
-            break;
         }
     } while (!quit);
+
+    OnDeactivated();
 
     return ret;
 }
 
 bool RunableThreads::OnTimeout()
 {
-    DebugPrint("WaitForMultipleObjects: time out");
+    DebugPrint("WaitForMultipleObjects: timeout");
     return (_activated == false);
 }
 
@@ -141,18 +139,6 @@ bool RunableThreads::OnTerminated()
 {
     DebugPrint("WaitForMultipleObjects: terminated");
     return true;
-}
-
-bool RunableThreads::OnAbandoned()
-{
-    DebugPrint("WaitForMultipleObjects: abandoned (%d)", GetLastError());
-    return false;
-}
-
-bool RunableThreads::OnFailed()
-{
-    DebugPrint("WaitForMultipleObjects: failed (%d)", GetLastError());
-    return false;
 }
 
 unsigned RunableThreads::RunByThread()

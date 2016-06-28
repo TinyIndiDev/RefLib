@@ -15,9 +15,6 @@ namespace RefLib
 NetService::NetService()
     : _maxCnt(0)
     , _comPort(INVALID_HANDLE_VALUE)
-    , _netListenerClosed(true)
-    , _netConnectorClosed(true)
-    , _netWorkerClosed(true)
 {
 }
 
@@ -42,22 +39,20 @@ bool NetService::InitServer(unsigned port, uint32 maxCnt, uint32 concurrency)
     _maxCnt = maxCnt;
     _objs.resize(maxCnt);
 
-    _netListener = std::make_unique<NetListener>(this);
-    if (!_netListener->Initialize(maxCnt))
+    _netConnectionProxy = std::make_unique<NetListener>(this);
+    if (!_netConnectionProxy->Initialize(maxCnt))
         return false;
-    _netListenerClosed = false;
 
     _netWorker = std::make_unique<NetWorkerServer>(this);
     if (!_netWorker->Initialize(concurrency))
         return false;
-    _netWorkerClosed = false;
 
     if (!CreateThreads(concurrency))
         return false;
 
     RunableThreads::Activate();
 
-    _netListener->Listen(port);
+    _netConnectionProxy->Listen(port);
 
     return true;
 }
@@ -74,15 +69,13 @@ bool NetService::InitClient(uint32 maxCnt, uint32 concurrency)
     _maxCnt = maxCnt;
     _objs.resize(maxCnt);
 
-    _netConnector = std::make_unique<NetConnector>(this);
-    if (!_netConnector->Initialize(maxCnt))
+    _netConnectionProxy = std::make_unique<NetConnector>(this);
+    if (!_netConnectionProxy->Initialize(maxCnt))
         return false;
-    _netConnectorClosed = false;
 
     _netWorker = std::make_unique<NetWorkerServer>(this);
     if (!_netWorker->Initialize(concurrency))
         return false;
-    _netWorkerClosed = false;
 
     if (!CreateThreads(concurrency))
         return false;
@@ -102,7 +95,7 @@ bool NetService::Connect(const std::string& ipStr, uint32 port, std::weak_ptr<Ne
     if (!RegisterToConnector(obj))
         return false;
 
-    return _netConnector->Connect(ipStr, port, obj);
+    return _netConnectionProxy->Connect(ipStr, port, obj);
 }
 
 bool NetService::RegisterToListener(std::weak_ptr<NetObj> obj)
@@ -110,7 +103,7 @@ bool NetService::RegisterToListener(std::weak_ptr<NetObj> obj)
     auto p = obj.lock();
     if (!p) return false;
 
-    auto con = _netListener->RegisterCon().lock();
+    auto con = _netConnectionProxy->RegisterCon().lock();
     if (!con) return false;
 
     if (p->Initialize(con))
@@ -133,7 +126,7 @@ bool NetService::RegisterToConnector(std::weak_ptr<NetObj> obj)
     auto p = obj.lock();
     if (!p) return false;
 
-    auto con = _netConnector->RegisterCon().lock();
+    auto con = _netConnectionProxy->RegisterCon().lock();
     if (!con) return false;
 
     if (p->Initialize(con))
@@ -200,7 +193,7 @@ unsigned NetService::Run()
     DWORD bytesTransfered;
     int rc;
 
-    while (true)
+    while (IsActive())
     {
         rc = GetQueuedCompletionStatus(
             _comPort,
@@ -213,25 +206,21 @@ unsigned NetService::Run()
         if (!obj)
         {
             DebugPrint("NetService::Run received shutdown signal");
-            break;
+            continue;
         }
 
         obj->OnRecvPacket();
     }    
+
     return 0;
 }
 
 void NetService::Shutdown()
 {
-    if (_netListener)
-        _netListener->Shutdown();
-    
-    if (_netConnector)
-        _netConnector->Shutdown();
-
-    while (!IsChildClosedAll())
+    if (_netConnectionProxy)
     {
-        Sleep(1000);
+        DebugPrint("Shutdown NetConnectionProxy.");
+        _netConnectionProxy->Shutdown();
     }
 }
 
@@ -240,15 +229,13 @@ void NetService::OnTerminated(NetServiceChildType childType)
     switch (childType)
     {
     case NET_CTYPE_LISTENER:
-        _netListenerClosed = true;
-        _netWorker->Deactivate();
-        break;
     case NET_CYPTE_CONNECTOR:
-        _netConnectorClosed = true;
-        _netWorker->Deactivate();
+        DebugPrint("Shutdown NetWorkerServer.");
+        _netWorker->Shutdown();
         break;
     case NET_CTYPE_NETWORKER:
-        _netWorkerClosed = true;
+        DebugPrint("Shutdown NetService.");
+        RunableThreads::Deactivate();
         ::PostQueuedCompletionStatus(_comPort, 0, NULL, NULL);
         break;
     default:

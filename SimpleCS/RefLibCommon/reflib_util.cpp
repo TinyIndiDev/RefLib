@@ -3,22 +3,23 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <vector>
+#include <sstream>
+#include "reflib_safelock.h"
 
 void DebugPrint(char *format, ...)
 {
 #ifdef _DEBUG
     va_list args;
-    int len;
-    std::vector<char> buffer;
+    char buffer[1024];
 
     va_start(args, format);
-    len = _vscprintf(format, args) + 1; // _vscprintf doesn't count terminating '\0'
-    buffer.resize(len, 0x00);
-    vsprintf_s(buffer.data(), len, format, args);
+    vsprintf_s(buffer, 1024, format, args);
     va_end(args);
 
-    std::cout << buffer.data() << std::endl;
+    std::string msg(buffer);
 
-    OutputDebugStringA(buffer.data());
+    std::cout << msg << std::endl;
+
+    OutputDebugStringA(msg.c_str());
 #endif
 }

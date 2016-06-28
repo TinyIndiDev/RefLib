@@ -94,7 +94,7 @@ bool NetSocket::PostRecv()
         {
             delete recvOP;
 
-            DebugPrint("PostRecv: WSARecv* failed: %s", SocketGetLastErrorString());
+            DebugPrint("PostRecv: WSARecv* failed: %s", SocketGetLastErrorString().c_str());
             Disconnect(NET_CTYPE_SYSTEM);
 
             return false;
@@ -187,7 +187,7 @@ bool NetSocket::PostSend()
     {
         if (WSAGetLastError() != WSA_IO_PENDING)
         {
-            DebugPrint("PostSend: WSASend* failed: %s", SocketGetLastErrorString());
+            DebugPrint("PostSend: WSASend* failed: %s", SocketGetLastErrorString().c_str());
             Disconnect(NET_CTYPE_SYSTEM);
             delete sendOP;
 
@@ -202,7 +202,7 @@ void NetSocket::OnCompletionFailure(NetCompletionOP* bufObj, DWORD bytesTransfer
 {
     REFLIB_ASSERT_RETURN_IF_FAILED(bufObj, "OnCOmpletionFailure: NetCompletionOP is nullptr.");
 
-    DebugPrint("OP = %d; Error = %d", bufObj->GetOP(), error);
+    DebugPrint("NetSocket] Socket(%d), OP(%d), Error(%d)", bufObj->GetSocket(), bufObj->GetOP(), error);
 
     switch (bufObj->GetOP())
     {

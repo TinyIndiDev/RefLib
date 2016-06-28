@@ -22,7 +22,7 @@ NetworkAPI::~NetworkAPI()
     {
         if (WSACleanup() == SOCKET_ERROR)
         {
-            DebugPrint("WSACleanup failed with error %s", SocketGetLastErrorString());
+            DebugPrint("WSACleanup failed: %s", SocketGetLastErrorString().c_str());
         }
     }
 }
@@ -61,7 +61,7 @@ bool NetworkAPI::InitNetworkExFns()
     SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sock == INVALID_SOCKET)
     {
-        DebugPrint("InitNetExFn failed: %s", SocketGetLastErrorString());
+        DebugPrint("InitNetExFn failed: %s", SocketGetLastErrorString().c_str());
         return false;
     }
 
@@ -79,8 +79,7 @@ bool NetworkAPI::InitNetworkExFns()
         );
     if (rc == SOCKET_ERROR)
     {
-        DebugPrint("WSAIoctl: SIO_GET_EXTENSION_FUNCTION_POINTER failed: %s",
-            SocketGetLastErrorString());
+        DebugPrint("WSAIoctl failed: %s", SocketGetLastErrorString().c_str());
         return false;
     }
 
@@ -97,8 +96,7 @@ bool NetworkAPI::InitNetworkExFns()
         );
     if (rc == SOCKET_ERROR)
     {
-        DebugPrint("WSAIoctl: SIO_GET_EXTENSION_FUNCTION_POINTER faled: %s",
-            SocketGetLastErrorString());
+        DebugPrint("WSAIoctl faled: %s", SocketGetLastErrorString().c_str());
         return false;
     }
 
@@ -114,8 +112,7 @@ bool NetworkAPI::InitNetworkExFns()
         NULL);
     if (rc == SOCKET_ERROR)
     {
-        DebugPrint("WSAIoctl: SIO_GET_EXTENSION_FUNCTION_POINTER faled: %s",
-            SocketGetLastErrorString());
+        DebugPrint("WSAIoctl faled: %s", SocketGetLastErrorString().c_str());
         return false;
     }
 
@@ -131,8 +128,7 @@ bool NetworkAPI::InitNetworkExFns()
         NULL);
     if (rc == SOCKET_ERROR)
     {
-        DebugPrint("WSAIoctl: SIO_GET_EXTENSION_FUNCTION_POINTER faled: %s",
-            SocketGetLastErrorString());
+        DebugPrint("WSAIoctl faled: %s", SocketGetLastErrorString().c_str());
         return false;
     }
 
@@ -153,14 +149,14 @@ bool NetworkAPI::Listen(SOCKET listenSock, const SOCKADDR_IN& saLocal)
     int rc = bind(listenSock, (SOCKADDR*)&saLocal, sizeof(saLocal));
     if (rc == SOCKET_ERROR)
     {
-        DebugPrint("bind failed: %s", SocketGetLastErrorString());
+        DebugPrint("bind failed: %s", SocketGetLastErrorString().c_str());
         return false;
     }
 
     rc = listen(listenSock, NETWORK_DEF_BACKLOG);
     if (rc == SOCKET_ERROR)
     {
-        DebugPrint("listen failed: %s", SocketGetLastErrorString());
+        DebugPrint("listen failed: %s", SocketGetLastErrorString().c_str());
         return false;
     }
 
@@ -213,7 +209,7 @@ bool NetworkAPI::Connect(NetCompletionOP* bufObj, const SOCKADDR_IN& addr)
     int rc = bind(socket, (SOCKADDR*)&saLocal, sizeof(saLocal));
     if (rc == SOCKET_ERROR)
     {
-        DebugPrint("bind failed: %s", SocketGetLastErrorString());
+        DebugPrint("bind failed: %s", SocketGetLastErrorString().c_str());
         return false;
     }
 

@@ -13,8 +13,12 @@ public:
     RunableThreads();
     virtual ~RunableThreads();
 
-    virtual void Activate();
-    virtual void Deactivate();
+    void Activate();
+    void Deactivate();
+
+    bool IsActive() const { return _activated; }
+
+    virtual void OnDeactivated() {}
 
     // call by thread
     virtual unsigned RunByThread();
@@ -23,19 +27,17 @@ protected:
     bool CreateThreads(unsigned threadCnt);
     bool CreateThreads(unsigned threadCnt, unsigned(__stdcall *ThreadProc)(void *));
 
-    virtual bool OnTimeout();
-    virtual bool OnTerminated();
-    virtual bool OnAbandoned();
-    virtual bool OnFailed();
-
     // call by thread
     virtual unsigned Run() { return 0; };
 
 private:
     static unsigned __stdcall ThreadProc(void* param);
 
-    virtual void Resume();
-    virtual unsigned Join();
+    void Resume();
+    unsigned Join();
+
+    bool OnTimeout();
+    bool OnTerminated();
 
     std::atomic<bool> _activated;
     std::vector<HANDLE> _hThreads;

@@ -14,12 +14,12 @@ using namespace RefLib;
 
 void RunService()
 {
-    std::string cmd;
+    char ch = 0x00;
 
-    while (cmd.compare("quit") != 0)
+    while (ch != '\n')
     {
-        std::cout << "Enter 'quit' to exit program: ";
-        std::getline(std::cin, cmd);
+        std::cout << "Press enter to quit: " << std::endl;
+        ch = std::getchar();
     }
 }
 

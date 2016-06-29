@@ -4,6 +4,7 @@
 #include "reflib_net_socket.h"
 #include "reflib_net_service.h"
 #include "reflib_net_api.h"
+#include "reflib_def.h"
 
 namespace RefLib
 {
@@ -32,65 +33,39 @@ bool NetWorkerServer::Initialize(unsigned int concurrency)
     return true;
 }
 
-void NetWorkerServer::Shutdown()
-{
-    RunableThreads::Deactivate();
-    ::PostQueuedCompletionStatus(_comPort, 0, NULL, NULL);
-}
-
-unsigned NetWorkerServer::Run()
+void NetWorkerServer::Run()
 {
     NetSocketBase* sockObj = nullptr;
-    NetCompletionOP* bufObj = nullptr;
-    OVERLAPPED *lpOverlapped = nullptr;
-    
-    DWORD   bytesTransfered;
-    DWORD   flags;
-    BOOL     rc;
-    int     error;
+    OVERLAPPED* lpOverlapped = nullptr;
+    DWORD bytesTransfered;
+    int error = NO_ERROR;
+    DWORD flags;
 
-    while (IsActive())
+    BOOL rc = GetQueuedCompletionStatus(_comPort, &bytesTransfered,
+        (PULONG_PTR)&sockObj, &lpOverlapped, THREAD_TIMEOUT_IN_MSEC);
+
+    if (rc == FALSE)
     {
-        error = NO_ERROR;
+        // Check time out
+        if (lpOverlapped == nullptr)
+            return;
 
-        rc = GetQueuedCompletionStatus(
-            _comPort,
-            &bytesTransfered,
-            (PULONG_PTR)&sockObj,
-            &lpOverlapped,
-            INFINITE);
-
-        if (!sockObj)
-        {
-            DebugPrint("NetWorkerServer::Run received shutdown signal");
-            continue;
-        }
-
-        bufObj = reinterpret_cast<NetCompletionOP*>(lpOverlapped);
-
+        rc = WSAGetOverlappedResult(sockObj->GetSocket(), lpOverlapped, 
+            &bytesTransfered, FALSE, &flags);
         if (rc == FALSE)
         {
-            rc = WSAGetOverlappedResult(
-                sockObj->GetSocket(),
-                lpOverlapped,
-                &bytesTransfered,
-                FALSE,
-                &flags);
-            if (rc == FALSE)
-            {
-                error = WSAGetLastError();
-            }
+            error = WSAGetLastError();
         }
-
-        HandleIO(sockObj, bufObj, bytesTransfered, error);
     }
 
-    return 0;
+    HandleIO(sockObj, lpOverlapped, bytesTransfered, error);
 }
 
-void NetWorkerServer::HandleIO(NetSocketBase* sockObj, NetCompletionOP* bufObj, DWORD bytesTransfered, int error)
+void NetWorkerServer::HandleIO(NetSocketBase* sockObj, OVERLAPPED* lpOverlapped, DWORD bytesTransfered, int error)
 {
     REFLIB_ASSERT_RETURN_IF_FAILED(sockObj, "NetSocket is null");
+
+    NetCompletionOP* bufObj = reinterpret_cast<NetCompletionOP*>(lpOverlapped);
 
     if (error != NO_ERROR)
     {

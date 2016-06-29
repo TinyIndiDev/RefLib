@@ -21,8 +21,9 @@ public:
     NetService();
     virtual ~NetService();
 
-    bool InitServer(unsigned port, uint32 maxCnt, uint32 concurrency);
+    bool InitServer(uint32 maxCnt, uint32 concurrency);
     bool InitClient(uint32 maxCnt, uint32 concurrency);
+    void StartListen(unsigned port);
     void Shutdown();
 
     bool AddListening(std::weak_ptr<NetObj> obj);
@@ -41,7 +42,7 @@ protected:
     bool RegisterToConnector(std::weak_ptr<NetObj> obj);
 
     // run by thread
-    virtual unsigned Run() override;
+    virtual void Run() override;
 
 private:
     typedef std::map<uint32, std::shared_ptr<NetObj>> FREE_NET_OBJS;

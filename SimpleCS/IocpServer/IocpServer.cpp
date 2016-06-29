@@ -14,17 +14,13 @@ using namespace RefLib;
 
 void RunService()
 {
-    char ch = 0x00;
-
-    while (ch != '\n')
-    {
-        std::cout << "Press enter to quit: " << std::endl;
-        ch = std::getchar();
-    }
+    getchar();
 }
 
 int main()
 {
+    std::cout << "Press enter to quit: " << std::endl;
+
     unsigned port = 5150;
     unsigned maxConn = 3000;
 
@@ -37,7 +33,7 @@ int main()
         return -1;
 
     auto netService = std::make_shared<NetService>();
-    if (!netService->InitServer(port, maxConn, sysInfo.dwNumberOfProcessors))
+    if (!netService->InitServer(maxConn, sysInfo.dwNumberOfProcessors))
         return -1;
 
     for (int i = 0; i < 10; ++i)
@@ -45,6 +41,8 @@ int main()
         auto obj = std::make_shared<GameNetObj>(netService);
         netService->AddListening(obj);
     }
+
+    netService->StartListen(port);
 
     RunService();
 

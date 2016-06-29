@@ -12,7 +12,7 @@
 
 using namespace RefLib;
 
-void RunService(std::weak_ptr<GameNetObj> obj)
+void DoJob(std::weak_ptr<GameNetObj> obj)
 {
     auto p = obj.lock();
 
@@ -20,10 +20,14 @@ void RunService(std::weak_ptr<GameNetObj> obj)
 
     std::string msg = "hello";
     p->Send((char*)msg.c_str(), (uint16)msg.length() + 1);
+
+    Sleep(5000);
 }
 
 int main()
 {
+    std::cout << "Press enter to quit: " << std::endl;
+
     std::string ipStr = "127.0.0.1";
     uint32 port = 5150;
     uint32 maxConn = 1;
@@ -44,11 +48,10 @@ int main()
     if (!netService->Connect(ipStr, port, obj))
         return -1;
 
-    RunService(obj);
+    DoJob(obj);
 
     netService->Shutdown();
 
-    std::cout << "Press enter to quit: " << std::endl;
     getchar();
 
     return 0;

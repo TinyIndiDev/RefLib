@@ -8,6 +8,7 @@
 #include "reflib_net_connector.h"
 #include "reflib_net_worker_server.h"
 #include "reflib_net_obj.h"
+#include "reflib_def.h"
 
 namespace RefLib
 {
@@ -27,7 +28,7 @@ NetService::~NetService()
     }
 }
 
-bool NetService::InitServer(unsigned port, uint32 maxCnt, uint32 concurrency)
+bool NetService::InitServer(uint32 maxCnt, uint32 concurrency)
 {
     _comPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, (ULONG_PTR)nullptr, concurrency);
     if (!_comPort)
@@ -47,14 +48,7 @@ bool NetService::InitServer(unsigned port, uint32 maxCnt, uint32 concurrency)
     if (!_netWorker->Initialize(concurrency))
         return false;
 
-    if (!CreateThreads(concurrency))
-        return false;
-
-    RunableThreads::Activate();
-
-    _netConnectionProxy->Listen(port);
-
-    return true;
+    return CreateThreads(concurrency);
 }
 
 bool NetService::InitClient(uint32 maxCnt, uint32 concurrency)
@@ -88,6 +82,12 @@ bool NetService::InitClient(uint32 maxCnt, uint32 concurrency)
 bool NetService::AddListening(std::weak_ptr<NetObj> obj)
 {
     return RegisterToListener(obj);
+}
+
+void NetService::StartListen(unsigned port)
+{
+    RunableThreads::Activate();
+    _netConnectionProxy->Listen(port);
 }
 
 bool NetService::Connect(const std::string& ipStr, uint32 port, std::weak_ptr<NetObj> obj)
@@ -186,33 +186,23 @@ bool NetService::FreeNetObj(const CompositId& id)
     return true;
 }
 
-unsigned NetService::Run()
+void NetService::Run()
 {
-    ULONG_PTR ulKey = 0;
-    OVERLAPPED *lpOverlapped = nullptr;
+    ULONG_PTR ulKey;
+    OVERLAPPED *lpOverlapped;
     DWORD bytesTransfered;
-    int rc;
 
-    while (IsActive())
+    int rc = GetQueuedCompletionStatus(_comPort, &bytesTransfered,
+        &ulKey, &lpOverlapped, THREAD_TIMEOUT_IN_MSEC);
+
+    // Check time out
+    if (rc == FALSE && lpOverlapped == nullptr)
+        return;
+
+    if (NetObj* obj = (NetObj*)ulKey)
     {
-        rc = GetQueuedCompletionStatus(
-            _comPort,
-            &bytesTransfered,
-            &ulKey,
-            &lpOverlapped,
-            INFINITE);
-
-        NetObj* obj = (NetObj*)ulKey;
-        if (!obj)
-        {
-            DebugPrint("NetService::Run received shutdown signal");
-            continue;
-        }
-
         obj->OnRecvPacket();
-    }    
-
-    return 0;
+    }
 }
 
 void NetService::Shutdown()
@@ -231,12 +221,11 @@ void NetService::OnTerminated(NetServiceChildType childType)
     case NET_CTYPE_LISTENER:
     case NET_CYPTE_CONNECTOR:
         DebugPrint("Shutdown NetWorkerServer.");
-        _netWorker->Shutdown();
+        _netWorker->Deactivate();
         break;
     case NET_CTYPE_NETWORKER:
         DebugPrint("Shutdown NetService.");
-        RunableThreads::Deactivate();
-        ::PostQueuedCompletionStatus(_comPort, 0, NULL, NULL);
+        Deactivate();
         break;
     default:
         break;

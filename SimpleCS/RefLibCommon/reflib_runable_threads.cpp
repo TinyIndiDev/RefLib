@@ -26,18 +26,6 @@ RunableThreads::RunableThreads()
 
 RunableThreads::~RunableThreads()
 {
-    try
-    {
-        for (auto handle : _hThreads)
-        {
-            CloseHandle(handle);
-        }
-    }
-    catch (...)
-    {
-        // CloseHandle can throw exception under debugger.
-        // suppress any exception; dtors should never throw
-    }
 }
 
 bool RunableThreads::CreateThreads(unsigned threadCnt)
@@ -54,7 +42,7 @@ bool RunableThreads::CreateThreads(unsigned threadCnt)
             DebugPrint("failed to create thread");
             return false;
         }
-        _hThreads.push_back(hThread);
+        _hThreads.insert(hThread);
     }
 
     return true;
@@ -74,7 +62,7 @@ bool RunableThreads::CreateThreads(unsigned threadCnt, unsigned(__stdcall *Threa
             DebugPrint("failed to create thread");
             return false;
         }
-        _hThreads.push_back(hThread);
+        _hThreads.insert(hThread);
     }
 
     return true;
@@ -106,44 +94,44 @@ void RunableThreads::Resume()
     }
 }
 
-unsigned RunableThreads::Join()
+void RunableThreads::Join()
 {
-    unsigned ret = 0;
-    bool quit = false;
+    while (!_hThreads.empty()) 
+    {
+        std::set<HANDLE> threads_left;
 
-    do {
-        ret = ::WaitForMultipleObjects(static_cast<DWORD>(_hThreads.size()), &(_hThreads.at(0)), TRUE, THREAD_TIMEOUT_IN_MSEC);
-        switch (ret)
+        for (std::set<HANDLE>::iterator cur_thread = _hThreads.begin(), last = _hThreads.end(); cur_thread != last; ++cur_thread)
         {
-        case WAIT_OBJECT_0:
-            quit = OnTerminated();
-            break;
-        case WAIT_TIMEOUT:
-            quit = OnTimeout();
-            break;
+            DWORD rc = ::WaitForSingleObject(*cur_thread, THREAD_TIMEOUT_IN_MSEC);
+            if (rc == WAIT_OBJECT_0) 
+            {
+                ::CloseHandle(*cur_thread); // necessary with _beginthreadex
+            }
+            else if (rc == WAIT_TIMEOUT) 
+            {
+                threads_left.insert(*cur_thread); // wait again
+            }
+            else 
+            {
+                // this shouldn't happen... try to close the handle and hope
+                // for the best!
+                ::CloseHandle(*cur_thread); // necessary with _beginthreadex
+            }
         }
-    } while (!quit);
+        std::swap(threads_left, _hThreads);
+    }
 
     OnDeactivated();
-
-    return ret;
-}
-
-bool RunableThreads::OnTimeout()
-{
-    DebugPrint("WaitForMultipleObjects: timeout");
-    return (_activated == false);
-}
-
-bool RunableThreads::OnTerminated()
-{
-    DebugPrint("WaitForMultipleObjects: terminated");
-    return true;
 }
 
 unsigned RunableThreads::RunByThread()
 {
-    return Run();
+    while (IsActive())
+    {
+        Run();
+    }
+
+    return 0;
 }
 
 } // namespace RefLib

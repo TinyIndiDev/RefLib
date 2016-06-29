@@ -1,7 +1,7 @@
 #pragma once
 
 #include "reflib_non_copyable.h"
-#include <vector>
+#include <set>
 #include <atomic>
 
 namespace RefLib
@@ -28,19 +28,16 @@ protected:
     bool CreateThreads(unsigned threadCnt, unsigned(__stdcall *ThreadProc)(void *));
 
     // call by thread
-    virtual unsigned Run() { return 0; };
+    virtual void Run() {};
 
 private:
     static unsigned __stdcall ThreadProc(void* param);
 
     void Resume();
-    unsigned Join();
-
-    bool OnTimeout();
-    bool OnTerminated();
+    void Join();
 
     std::atomic<bool> _activated;
-    std::vector<HANDLE> _hThreads;
+    std::set<HANDLE> _hThreads;
 };
 
 } // namespace RefLib

@@ -20,14 +20,13 @@ public:
     virtual ~NetWorkerServer() {}
 
     virtual bool Initialize(unsigned int concurrency);
-    void Shutdown();
 
     virtual void OnDeactivated() override;
 
 protected:
     // run by thread
-    virtual unsigned Run() override;
-    void HandleIO(NetSocketBase* sock, NetCompletionOP* bufObj, DWORD bytesTransfered, int error);
+    virtual void Run() override;
+    void HandleIO(NetSocketBase* sock, OVERLAPPED* lpOverlapped, DWORD bytesTransfered, int error);
 
 private:
     HANDLE _comPort;

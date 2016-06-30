@@ -3,21 +3,7 @@
 namespace RefLib
 {
 
-class NetOverlapped : public WSAOVERLAPPED
-{
-public:
-    NetOverlapped()
-    {
-        Reset();
-    }
-
-    void Reset()
-    {
-        memset(this, 0x00, sizeof(NetOverlapped));
-    }
-};
-
-class NetCompletionOP : public NetOverlapped
+struct NetCompletionOP
 {
 public:
     enum NetOPType
@@ -29,36 +15,32 @@ public:
         OP_DISCONNECT,
     };
 
-    NetCompletionOP(NetOPType op)
-        : _op(op)
+    NetCompletionOP(NetOPType op_)
+        : op(op_)
     {
         Reset();
+    }
+
+    void Reset(SOCKET sock = INVALID_SOCKET)
+    {
+        memset(&ol, 0x00, sizeof(WSAOVERLAPPED));
+        client = sock;
     }
 
     NetCompletionOP& operator=(const NetCompletionOP& rhs)
     {
         if (this != &rhs)
         {
-            _client = rhs._client;
-            //TODO copy content of OVERLAPPED
+            memcpy(&ol, &rhs.ol, sizeof(WSAOVERLAPPED));
+            client = rhs.client;
+            op = rhs.op;
         }
         return *this;
     }
 
-    void Reset()
-    {
-        NetOverlapped::Reset();
-        _client = INVALID_SOCKET;
-    }
-
-    NetOPType GetOP() const { return _op; }
-
-    void SetSocket(SOCKET sock) { _client = sock; }
-    SOCKET GetSocket() const { return _client; }
-
-private:
-    const NetOPType _op;
-    SOCKET _client;
+    WSAOVERLAPPED   ol;
+    SOCKET          client;
+    NetOPType       op;
 };
 
 } // namespace RefLib

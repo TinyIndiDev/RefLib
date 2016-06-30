@@ -65,7 +65,7 @@ void NetWorkerServer::HandleIO(NetSocketBase* sockObj, OVERLAPPED* lpOverlapped,
 {
     REFLIB_ASSERT_RETURN_IF_FAILED(sockObj, "NetSocket is null");
 
-    NetCompletionOP* bufObj = reinterpret_cast<NetCompletionOP*>(lpOverlapped);
+    NetCompletionOP* bufObj = CONTAINING_RECORD(lpOverlapped, NetCompletionOP, ol);
 
     if (error != NO_ERROR)
     {

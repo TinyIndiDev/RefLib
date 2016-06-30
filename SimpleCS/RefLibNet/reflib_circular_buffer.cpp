@@ -39,6 +39,8 @@ bool CircularBuffer::GetData(char *pData, unsigned int len)
         memcpy(pData, _buffer + _headPos, len);
     }
 
+    _headPos += len;
+
     return true;
 }
 

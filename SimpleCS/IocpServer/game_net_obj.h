@@ -15,6 +15,8 @@ public:
     GameNetObj(std::weak_ptr<RefLib::NetService> container);
     virtual ~GameNetObj();
 
-    virtual void OnRecvPacket() override;
+    virtual void OnConnected() override;
+    virtual void OnDisconnected() override;
+    virtual bool OnRecvPacket() override;
 };
 

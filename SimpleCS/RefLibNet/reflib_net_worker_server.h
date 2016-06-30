@@ -7,8 +7,8 @@
 namespace RefLib
 {
 
+struct NetCompletionOP;
 class NetSocketBase;
-class NetCompletionOP;
 class NetService;
 
 class NetWorkerServer

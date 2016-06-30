@@ -79,11 +79,13 @@ void NetObj::OnDisconnected()
 }
 
 // called by network thead
-void NetObj::RecvPacket(MemoryBlock* packet)
+bool NetObj::RecvPacket(MemoryBlock* packet)
 {
     _recvPackets.push(packet);
 
     ::PostQueuedCompletionStatus(_comPort, 0, (ULONG_PTR)this, NULL);
+
+    return true;
 }
 
 MemoryBlock* NetObj::PopRecvPacket()

@@ -187,18 +187,14 @@ bool NetworkAPI::Accept(SOCKET listenSock, AcceptBuffer* acceptObj)
         SOCKETADDR_BUFFER_SIZE,
         SOCKETADDR_BUFFER_SIZE,
         &bytes,
-        reinterpret_cast<LPOVERLAPPED>(acceptObj)
+        &acceptObj->GetOL()
         ) == TRUE);
 }
 
 bool NetworkAPI::Connect(NetCompletionOP* bufObj, const SOCKADDR_IN& addr)
 {
-    SOCKET socket = bufObj->GetSocket();
-    if (socket == INVALID_SOCKET)
-    {
-        DebugPrint("Connect failed: socket is null.");
-        return false;
-    }
+    SOCKET socket = bufObj->client;
+    REFLIB_ASSERT_RETURN_VAL_IF_FAILED(socket != INVALID_SOCKET, "Connect failed: socket is null.", false);
 
     SOCKADDR_IN saLocal;
     saLocal.sin_family = AF_INET;
@@ -220,14 +216,14 @@ bool NetworkAPI::Connect(NetCompletionOP* bufObj, const SOCKADDR_IN& addr)
 
 void NetworkAPI::ConnectEx(NetCompletionOP* bufObj, const SOCKADDR_IN& addr)
 {
-    SOCKET socket = bufObj->GetSocket();
+    SOCKET socket = bufObj->client;
 
-    _lpfnConnectEx(socket, (SOCKADDR*)&addr, sizeof(addr), nullptr, 0, nullptr, reinterpret_cast<LPOVERLAPPED>(bufObj));
+    _lpfnConnectEx(socket, (SOCKADDR*)&addr, sizeof(addr), nullptr, 0, nullptr, &(bufObj->ol));
 }
 
 bool NetworkAPI::Disconnect(NetCompletionOP* bufObj, NetCloseType closer)
 {
-    SOCKET socket = bufObj->GetSocket();
+    SOCKET socket = bufObj->client;
 
     if (socket == INVALID_SOCKET)
         return false;
@@ -248,9 +244,9 @@ bool NetworkAPI::Disconnect(NetCompletionOP* bufObj, NetCloseType closer)
 
 void NetworkAPI::DisconnectEx(NetCompletionOP* bufObj)
 {
-    SOCKET socket = bufObj->GetSocket();
+    SOCKET socket = bufObj->client;
 
-    _lpfnDisconnectEx(socket, reinterpret_cast<LPOVERLAPPED>(bufObj), 0, 0);
+    _lpfnDisconnectEx(socket, &(bufObj->ol), 0, 0);
 }
 
 } // namespace RefLib

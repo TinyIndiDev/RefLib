@@ -12,18 +12,6 @@
 
 using namespace RefLib;
 
-void DoJob(std::weak_ptr<GameNetObj> obj)
-{
-    auto p = obj.lock();
-
-    std::cout << "Sending packet" << std::endl;
-
-    std::string msg = "hello";
-    p->Send((char*)msg.c_str(), (uint16)msg.length() + 1);
-
-    Sleep(5000);
-}
-
 int main()
 {
     std::cout << "Press enter to quit: " << std::endl;
@@ -48,11 +36,9 @@ int main()
     if (!netService->Connect(ipStr, port, obj))
         return -1;
 
-    DoJob(obj);
+    getchar();
 
     netService->Shutdown();
-
-    getchar();
 
     return 0;
 }

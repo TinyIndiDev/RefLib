@@ -18,15 +18,17 @@ public:
     AcceptBuffer() 
         : NetCompletionOP(NetCompletionOP::OP_ACCEPT)
     {
-        Reset();
-    }
-
-    void Reset()
-    {
-        NetCompletionOP::Reset();
         memset(_data, 0x00, SOCKETADDR_BUFFER_SIZE * 2);
     }
 
+    void Reset(SOCKET sock = INVALID_SOCKET)
+    {
+        NetCompletionOP::Reset(sock);
+        memset(_data, 0x00, SOCKETADDR_BUFFER_SIZE * 2);
+    }
+
+    WSAOVERLAPPED& GetOL() { return ol; }
+    SOCKET GetSocket() { return client; }
     char* GetData() { return &_data[0]; }
 
 private:

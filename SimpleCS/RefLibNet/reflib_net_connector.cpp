@@ -21,6 +21,8 @@ bool NetConnector::Connect(const std::string& ipStr, uint32 port, std::weak_ptr<
 {
     auto p = obj.lock();
     REFLIB_ASSERT_RETURN_VAL_IF_FAILED(p, "Connect: NetObj is null", false);
+    auto con = p->GetConn().lock();
+    REFLIB_ASSERT_RETURN_VAL_IF_FAILED(con, "Connect: NetConnection is null", false);
 
     SOCKADDR_IN addr;
     addr.sin_family = AF_INET;
@@ -31,10 +33,26 @@ bool NetConnector::Connect(const std::string& ipStr, uint32 port, std::weak_ptr<
         return false;
     }
 
-    SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
+    HANDLE completionPort = g_network.GetCompletionPort();
+    if (completionPort == INVALID_HANDLE_VALUE)
+    {
+        DebugPrint("Completion port is null");
+        return false;
+    }
+
+    SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sock == INVALID_SOCKET)
     {
         DebugPrint("Cannot create listen socket: %s", SocketGetLastErrorString().c_str());
+        return false;
+    }
+
+    // Associate the new connection to our completion port
+    HANDLE hrc = CreateIoCompletionPort((HANDLE)sock,
+        completionPort, (ULONG_PTR)con.get(), 0);
+    if (hrc == NULL)
+    {
+        DebugPrint("OnAccept failed: %s", SocketGetLastErrorString().c_str());
         return false;
     }
 

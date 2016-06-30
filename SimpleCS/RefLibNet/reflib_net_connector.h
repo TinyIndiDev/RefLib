@@ -8,8 +8,8 @@
 namespace RefLib
 {
 
+struct NetCompletionOP;
 class NetAcceptor;
-class NetCompletionOP;
 
 class NetConnector : public NetConnectionProxy
 {

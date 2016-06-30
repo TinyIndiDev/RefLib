@@ -13,7 +13,16 @@ GameNetObj::~GameNetObj()
 {
 }
 
-void GameNetObj::OnRecvPacket()
+void GameNetObj::OnConnected()
+{
+}
+
+void GameNetObj::OnDisconnected()
+{
+
+}
+
+bool GameNetObj::OnRecvPacket()
 {
     RefLib::MemoryBlock* buffer = nullptr;
 
@@ -22,4 +31,6 @@ void GameNetObj::OnRecvPacket()
         std::string msg(buffer->GetData(), buffer->GetDataLen()+1);
         std::cout << msg << std::endl;
     }
+
+    return true;
 }

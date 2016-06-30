@@ -63,13 +63,13 @@ bool NetListener::Listen(unsigned port)
 
 void NetListener::OnCompletionFailure(NetCompletionOP* bufObj, DWORD bytesTransfered, int error)
 {
-    DebugPrint("NetListener] Socket(%d), OP(%d), Error(%d)", bufObj->GetSocket(), bufObj->GetOP(), error);
+    DebugPrint("NetListener] Socket(%d), OP(%d), Error(%d)", bufObj->client, bufObj->op, error);
     return;
 }
 
 void NetListener::OnCompletionSuccess(NetCompletionOP* bufObj, DWORD bytesTransfered)
 {
-    switch (bufObj->GetOP())
+    switch (bufObj->op)
     {
     case NetCompletionOP::OP_ACCEPT:
         OnAccept(bufObj);
@@ -85,7 +85,7 @@ void NetListener::OnCompletionSuccess(NetCompletionOP* bufObj, DWORD bytesTransf
 
 void NetListener::OnAccept(NetCompletionOP* bufObj)
 {
-    auto con = NetConnectionProxy::AllocNetCon(bufObj->GetSocket()).lock();
+    auto con = NetConnectionProxy::AllocNetCon(bufObj->client).lock();
     if (con)
         _acceptor->OnAccept(con, bufObj);
 }

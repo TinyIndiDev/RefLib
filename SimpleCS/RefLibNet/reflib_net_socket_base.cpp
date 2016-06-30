@@ -29,16 +29,14 @@ bool NetSocketBase::Connect(SOCKET sock, const SOCKADDR_IN& addr)
     SetSocket(sock);
 
     _netStatus.fetch_or(NET_STATUS_CONN_PENDING);
-    _connectOP->Reset();
-    _connectOP->SetSocket(_socket);
+    _connectOP->Reset(_socket);
     return g_network.Connect(_connectOP, addr);
 }
 
 void NetSocketBase::Disconnect(NetCloseType closer)
 {
     _netStatus.fetch_or(NET_STATUS_CLOSE_PENDING);
-    _disconnectOP->Reset();
-    _disconnectOP->SetSocket(_socket);
+    _disconnectOP->Reset(_socket);
     g_network.Disconnect(_disconnectOP, closer);
 }
 
@@ -51,10 +49,10 @@ void NetSocketBase::OnDisconnected()
 {
     _socket.exchange(INVALID_SOCKET);
 
-    _netStatus.fetch_and((~NET_STATUS_CONNECTED) | (~NET_STATUS_CLOSE_PENDING));
+    _netStatus.fetch_and((~NET_STATUS_CONNECTED) & (~NET_STATUS_CLOSE_PENDING));
     if (_netStatus != 0)
     {
-        DebugPrint("OnDisconnected: closed without clearing pending status %d", _netStatus);
+        DebugPrint("OnDisconnected: closed without clearing pending status 0x%x", _netStatus);
     }
 }
 

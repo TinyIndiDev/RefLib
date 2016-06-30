@@ -22,11 +22,12 @@ public:
     virtual bool Initialize(std::weak_ptr<NetConnection> con);
     virtual bool PostInit();
     virtual bool Connect(SOCKET sock, const SOCKADDR_IN& addr);
-    virtual void OnRecvPacket()=0;
+    virtual bool OnRecvPacket()=0;
     virtual void Send(char* data, uint16 dataLen);
+    virtual void OnConnected() {}
     virtual void OnDisconnected();
 
-    void RecvPacket(MemoryBlock* packet);
+    bool RecvPacket(MemoryBlock* packet);
     MemoryBlock* PopRecvPacket();
 
 private:

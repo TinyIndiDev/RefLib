@@ -44,8 +44,7 @@ bool NetAcceptor::PostAccept(AcceptBuffer* acceptObj)
         return false;
     }
 
-    acceptObj->Reset();
-    acceptObj->SetSocket(sClient);
+    acceptObj->Reset(sClient);
 
     if (g_network.Accept(_listenSock->GetSocket(), acceptObj) == false)
     {
@@ -69,7 +68,7 @@ void NetAcceptor::OnAccept(std::weak_ptr<NetConnection> clientObj, NetCompletion
 
     // Associate the new connection to our completion port
     HANDLE hrc = CreateIoCompletionPort(
-        (HANDLE)bufObj->GetSocket(),
+        (HANDLE)bufObj->client,
         _comPort,
         (ULONG_PTR)con.get(),
         0);

@@ -7,8 +7,8 @@
 namespace RefLib
 {
 
+struct NetCompletionOP;
 class MemoryBlock;
-class NetCompletionOP;
 
 class NetSocketBase : public NetCompletion
 {

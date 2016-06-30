@@ -27,13 +27,22 @@ bool NetConnection::Initialize(SOCKET sock, NetConnectionProxy* container)
 }
 
 // called by NetSocket::OnRecvData()
-void NetConnection::RecvPacket(MemoryBlock* packet) 
+bool NetConnection::RecvPacket(MemoryBlock* packet) 
 {
     auto p = _parent.lock();
-    REFLIB_ASSERT_RETURN_IF_FAILED(p, "RevPaket: parent is nullptr");
+    REFLIB_ASSERT_RETURN_VAL_IF_FAILED(p, "RevPaket: parent is nullptr", false);
 
     // deliver packet to NetObj
-    p->RecvPacket(packet);
+    return p->RecvPacket(packet);
+}
+
+void NetConnection::OnConnected()
+{
+    NetSocket::OnConnected();
+
+    auto p = _parent.lock();
+    REFLIB_ASSERT_RETURN_IF_FAILED(p, "OnConnected: parent is nullptr");
+    if (p) p->OnConnected();
 }
 
 void NetConnection::OnDisconnected()

@@ -48,7 +48,7 @@ public:
     bool Initialize(SOCKET sock);
 
     void Send(char* data, uint16 dataLen);
-    virtual void RecvPacket(MemoryBlock* packet) {}
+    virtual bool RecvPacket(MemoryBlock* packet) { return true; }
 
     virtual void OnCompletionSuccess(NetCompletionOP* bufObj, DWORD bytesTransfered) override;
     virtual void OnCompletionFailure(NetCompletionOP* bufObj, DWORD bytesTransfered, int error) override;
@@ -74,7 +74,7 @@ private:
     void ClearSendQueue();
 
     void OnRecvData(const char* data, int dataLen);
-    ePACKET_EXTRACT_RESULT ExtractPakcetData(MemoryBlock* buffer);
+    ePACKET_EXTRACT_RESULT ExtractPakcetData(MemoryBlock*& buffer);
 
     Concurrency::concurrent_queue<MemoryBlock*> _sendQueue;
     Concurrency::concurrent_queue<MemoryBlock*> _sendPendingQueue;

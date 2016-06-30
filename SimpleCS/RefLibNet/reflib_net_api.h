@@ -6,8 +6,8 @@
 namespace RefLib
 {
 
+struct NetCompletionOP;
 class AcceptBuffer;
-class NetCompletionOP;
 
 class NetworkAPI
 {

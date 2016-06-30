@@ -29,7 +29,8 @@ public:
 
     bool Initialize(SOCKET sock, NetConnectionProxy* container);
 
-    virtual void RecvPacket(MemoryBlock* packet) override;
+    virtual bool RecvPacket(MemoryBlock* packet) override;
+    virtual void OnConnected() override;
     virtual void OnDisconnected() override;
 
 private:

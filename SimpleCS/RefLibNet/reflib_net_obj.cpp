@@ -41,15 +41,6 @@ bool NetObj::Initialize(std::weak_ptr<NetConnection> con)
     return false;
 }
 
-// called afeter accept
-bool NetObj::PostInit()
-{
-    if (auto p = _container.lock())
-        return p->AllocNetObj(GetCompId());
-
-    return false;
-}
-
 // Called when game object is expired
 void NetObj::Reset()
 {
@@ -68,6 +59,12 @@ bool NetObj::Connect(SOCKET sock, const SOCKADDR_IN& addr)
     REFLIB_ASSERT_RETURN_VAL_IF_FAILED(p, "NetConn is null", false);
 
     return p->Connect(sock, addr);
+}
+
+void NetObj::OnConnected()
+{
+    if (auto p = _container.lock())
+        p->AllocNetObj(GetCompId());
 }
 
 void NetObj::OnDisconnected()

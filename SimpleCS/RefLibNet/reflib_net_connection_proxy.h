@@ -21,6 +21,7 @@ public:
 
     std::weak_ptr<NetConnection> RegisterCon();
     std::weak_ptr<NetConnection> AllocNetCon(SOCKET sock);
+    bool AllocNetCon(const CompositId& id, SOCKET sock);
     void FreeNetCon(const CompositId& id);
 
     virtual NetServiceChildType GetChildType() const { return NET_CTYPE_NA; };

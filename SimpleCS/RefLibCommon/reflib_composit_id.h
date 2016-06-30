@@ -24,6 +24,8 @@ public:
         _salt = (_salt + 1) % UINT32_MAX;
     }
 
+    bool operator==(const CompositId& rhs) { return (_id == rhs._id && _salt == rhs._salt); }
+
 private:
     uint32 _id;
     uint32 _salt;

@@ -20,11 +20,10 @@ public:
     std::weak_ptr<NetConnection> GetConn() { return _con; }
 
     virtual bool Initialize(std::weak_ptr<NetConnection> con);
-    virtual bool PostInit();
     virtual bool Connect(SOCKET sock, const SOCKADDR_IN& addr);
     virtual bool OnRecvPacket()=0;
     virtual void Send(char* data, uint16 dataLen);
-    virtual void OnConnected() {}
+    virtual void OnConnected();
     virtual void OnDisconnected();
 
     bool RecvPacket(MemoryBlock* packet);

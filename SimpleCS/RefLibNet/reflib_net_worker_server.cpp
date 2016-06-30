@@ -69,7 +69,10 @@ void NetWorkerServer::HandleIO(NetSocketBase* sockObj, OVERLAPPED* lpOverlapped,
 
     if (error != NO_ERROR)
     {
-        sockObj->OnCompletionFailure(bufObj, bytesTransfered, error);
+        if (bytesTransfered == 0)
+            sockObj->OnDisconnected();
+        else           
+            sockObj->OnCompletionFailure(bufObj, bytesTransfered, error);
     }
     else
     {

@@ -17,13 +17,7 @@ bool NetConnection::Initialize(SOCKET sock, NetConnectionProxy* container)
     REFLIB_ASSERT_RETURN_VAL_IF_FAILED(container, "NetConnection::Initialize: NetConnectionProxy is null", false);
     _container = container;
 
-    if (!NetSocket::Initialize(sock))
-        return false;
-
-    if (auto p = _parent.lock())
-        return p->PostInit();
-
-    return false;
+    return NetSocket::Initialize(sock);
 }
 
 // called by NetSocket::OnRecvData()
@@ -54,6 +48,7 @@ void NetConnection::OnDisconnected()
     if (p) p->OnDisconnected();
 
     REFLIB_ASSERT_RETURN_IF_FAILED(_container, "OnDisconnected: container is nullptr");
+
     _container->FreeNetCon(GetCompId());
 }
 

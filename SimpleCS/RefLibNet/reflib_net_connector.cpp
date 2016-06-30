@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #include "reflib_net_connector.h"
+#include "reflib_net_connection.h"
 #include "reflib_net_obj.h"
 #include "reflib_net_api.h"
 #include "reflib_util.h"
@@ -46,6 +47,9 @@ bool NetConnector::Connect(const std::string& ipStr, uint32 port, std::weak_ptr<
         DebugPrint("Cannot create listen socket: %s", SocketGetLastErrorString().c_str());
         return false;
     }
+
+    REFLIB_ASSERT_RETURN_VAL_IF_FAILED(NetConnectionProxy::AllocNetCon(con->GetCompId(), sock),
+        "NetConnection is null", false);
 
     // Associate the new connection to our completion port
     HANDLE hrc = CreateIoCompletionPort((HANDLE)sock,

@@ -25,6 +25,8 @@ int main()
     if (sysInfo.dwNumberOfProcessors > NETWORK_MAX_COMPLETION_THREAD_COUNT)
         sysInfo.dwNumberOfProcessors = NETWORK_MAX_COMPLETION_THREAD_COUNT;
 
+    sysInfo.dwNumberOfProcessors = 1;
+
     if (!g_network.Initialize())
         return -1;
 

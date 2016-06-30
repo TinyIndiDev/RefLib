@@ -40,6 +40,12 @@ std::weak_ptr<NetConnection> NetConnectionProxy::AllocNetCon(SOCKET sock)
     return std::shared_ptr<NetConnection>();
 }
 
+bool NetConnectionProxy::AllocNetCon(const CompositId& id, SOCKET sock)
+{
+    auto con = _conMgr->AllocNetCon(id).lock();
+    return (con && con->Initialize(sock, this));
+}
+
 void NetConnectionProxy::FreeNetCon(const CompositId& id)
 {
     _conMgr->FreeNetCon(id);

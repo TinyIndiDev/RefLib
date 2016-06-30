@@ -2,7 +2,7 @@
 
 #include <atomic>
 #include <map>
-#include <queue>
+#include <deque>
 #include <memory>
 #include "reflib_safelock.h"
 #include "reflib_composit_id.h"
@@ -23,14 +23,15 @@ public:
     void Shutdown();
 
     std::weak_ptr<NetConnection> AllocNetCon();
-    bool FreeNetCon(CompositId compId);
+    std::weak_ptr<NetConnection> AllocNetCon(const CompositId& compId);
+    bool FreeNetCon(const CompositId& compId);
 
     bool IsEmpty();
 
 private:
     uint32 GetNextIndex();
 
-    typedef std::queue<std::shared_ptr<NetConnection>> FREE_CONNS;
+    typedef std::deque<std::shared_ptr<NetConnection>> FREE_CONNS;
     typedef std::map<uint64, std::shared_ptr<NetConnection>> NET_CONNS;
 
     FREE_CONNS  _freeCons;

@@ -30,7 +30,7 @@ std::weak_ptr<NetConnection> NetConnectionMgr::RegisterCon()
     SafeLock::Owner owner(_conLock);
 
     auto p = std::make_shared<NetConnection>(GetNextIndex(), 0);
-    _freeCons.push(p);
+    _freeCons.push_back(p);
 
     return p;
 }
@@ -66,29 +66,61 @@ std::weak_ptr<NetConnection> NetConnectionMgr::AllocNetCon()
 
     SafeLock::Owner owner(_conLock);
 
-    if (!_freeCons.empty())
+    if (_freeCons.empty())
+    {
+        con = std::make_shared<NetConnection>(GetNextIndex(), 0);
+    }
+    else
     {
         con = _freeCons.front();
-        _freeCons.pop();
+        _freeCons.pop_front();
+    }
 
-        if (con.get())
-        {
-            con->IncSalt();
-            _netCons.insert(std::pair<uint64, std::shared_ptr<NetConnection>>(con->GetCompId().GetIndex(), con));
-        }
+    if (con.get())
+    {
+        con->IncSalt();
+        _netCons.insert(std::pair<uint64, std::shared_ptr<NetConnection>>(con->GetCompId().GetIndex(), con));
     }
 
     return con;
 }
 
-bool NetConnectionMgr::FreeNetCon(CompositId compId)
+std::weak_ptr<NetConnection> NetConnectionMgr::AllocNetCon(const CompositId& compId)
+{
+    std::shared_ptr<NetConnection> con;
+
+    SafeLock::Owner owner(_conLock);
+
+    auto it = _freeCons.begin();
+    for (; it != _freeCons.end(); ++it)
+    {
+        auto p = it->get();
+        if (p && (p->GetCompId() == compId))
+            break;
+    }
+    if (it == _freeCons.end())
+        return con;
+
+    con = _freeCons.front();
+    _freeCons.pop_front();
+
+    if (con.get())
+    {
+        con->IncSalt();
+        _netCons.insert(std::pair<uint64, std::shared_ptr<NetConnection>>(con->GetCompId().GetIndex(), con));
+    }
+
+    return con;
+}
+
+bool NetConnectionMgr::FreeNetCon(const CompositId& compId)
 {
     SafeLock::Owner owner(_conLock);
 
     auto it = _netCons.find(compId.GetIndex());
     if (it != _netCons.end())
     {
-        _freeCons.push(it->second);
+        _freeCons.push_back(it->second);
         _netCons.erase(it);
 
         return true;

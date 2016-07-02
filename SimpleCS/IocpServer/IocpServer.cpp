@@ -12,11 +12,6 @@
 
 using namespace RefLib;
 
-void RunService()
-{
-    getchar();
-}
-
 int main()
 {
     std::cout << "Press enter to quit: " << std::endl;
@@ -44,7 +39,7 @@ int main()
 
     netService->StartListen(port);
 
-    RunService();
+    getchar();
 
     netService->Shutdown();
 

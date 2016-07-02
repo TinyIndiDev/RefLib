@@ -14,6 +14,7 @@ public:
     virtual ~RunableThreads();
 
     void Activate();
+    void Join();
     void Deactivate();
 
     bool IsActive() const { return _activated; }
@@ -34,7 +35,6 @@ private:
     static unsigned __stdcall ThreadProc(void* param);
 
     void Resume();
-    void Join();
 
     std::atomic<bool> _activated;
     std::set<HANDLE> _hThreads;

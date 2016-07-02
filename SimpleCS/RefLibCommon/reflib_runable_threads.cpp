@@ -80,10 +80,7 @@ void RunableThreads::Activate()
 void RunableThreads::Deactivate()
 {
     bool expected = true;
-    if (_activated.compare_exchange_weak(expected, false))
-    {
-        Join();
-    }
+    _activated.compare_exchange_weak(expected, false);
 }
 
 void RunableThreads::Resume()
@@ -109,7 +106,10 @@ void RunableThreads::Join()
             }
             else if (rc == WAIT_TIMEOUT) 
             {
-                threads_left.insert(*cur_thread); // wait again
+                if (_activated)
+                    threads_left.insert(*cur_thread); // wait again
+                else
+                    ::CloseHandle(*cur_thread);
             }
             else 
             {

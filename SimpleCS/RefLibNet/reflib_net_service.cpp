@@ -207,11 +207,15 @@ void NetService::Run()
 
 void NetService::Shutdown()
 {
+    DebugPrint("Shutdown NetService.");
+
     if (_netConnectionProxy)
     {
         DebugPrint("Shutdown NetConnectionProxy.");
         _netConnectionProxy->Shutdown();
     }
+
+    Join();
 }
 
 void NetService::OnTerminated(NetServiceChildType childType)
@@ -222,9 +226,9 @@ void NetService::OnTerminated(NetServiceChildType childType)
     case NET_CYPTE_CONNECTOR:
         DebugPrint("Shutdown NetWorkerServer.");
         _netWorker->Deactivate();
+        _netWorker->Join();
         break;
     case NET_CTYPE_NETWORKER:
-        DebugPrint("Shutdown NetService.");
         Deactivate();
         break;
     default:

@@ -30,6 +30,12 @@ NetService::~NetService()
 
 bool NetService::InitServer(uint32 maxCnt, uint32 concurrency)
 {
+    if (_netConnectionProxy.get())
+    {
+        DebugPrint("Already initialized");
+        return false;
+    }
+
     _comPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, (ULONG_PTR)nullptr, concurrency);
     if (!_comPort)
     {
@@ -53,6 +59,12 @@ bool NetService::InitServer(uint32 maxCnt, uint32 concurrency)
 
 bool NetService::InitClient(uint32 maxCnt, uint32 concurrency)
 {
+    if (_netConnectionProxy.get())
+    {
+        DebugPrint("Already initialized");
+        return false;
+    }
+
     _comPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, (ULONG_PTR)nullptr, concurrency);
     if (!_comPort)
     {
@@ -81,17 +93,34 @@ bool NetService::InitClient(uint32 maxCnt, uint32 concurrency)
 
 bool NetService::AddListening(std::weak_ptr<NetObj> obj)
 {
+    if (_netConnectionProxy->GetChildType() != NET_CTYPE_LISTENER)
+    {
+        DebugPrint("NetService is not initialized for Listening.");
+        return false;
+    }
+
     return RegisterToListener(obj);
 }
 
 void NetService::StartListen(unsigned port)
 {
+    if (_netConnectionProxy->GetChildType() != NET_CTYPE_LISTENER)
+    {
+        DebugPrint("NetService is not initialized for Listening.");
+        return;
+    }
     RunableThreads::Activate();
     _netConnectionProxy->Listen(port);
 }
 
 bool NetService::Connect(const std::string& ipStr, uint32 port, std::weak_ptr<NetObj> obj)
 {
+    if (_netConnectionProxy->GetChildType() != NET_CTYPE_CONNECTOR)
+    {
+        DebugPrint("NetService is not initialized for Connector.");
+        return false;
+    }
+
     if (!RegisterToConnector(obj))
         return false;
 
@@ -223,7 +252,7 @@ void NetService::OnTerminated(NetServiceChildType childType)
     switch (childType)
     {
     case NET_CTYPE_LISTENER:
-    case NET_CYPTE_CONNECTOR:
+    case NET_CTYPE_CONNECTOR:
         DebugPrint("Shutdown NetWorkerServer.");
         _netWorker->Deactivate();
         _netWorker->Join();

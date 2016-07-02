@@ -17,7 +17,7 @@ public:
     NetConnector(NetService* container);
     virtual ~NetConnector();
 
-    virtual NetServiceChildType GetChildType() const { return NET_CYPTE_CONNECTOR; }
+    virtual NetServiceChildType GetChildType() const { return NET_CTYPE_CONNECTOR; }
 
     bool Connect(const std::string& ipStr, uint32 port, std::weak_ptr<NetObj> obj);
 };

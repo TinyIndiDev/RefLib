@@ -48,7 +48,7 @@ bool RunableThreads::CreateThreads(unsigned threadCnt)
     return true;
 }
 
-bool RunableThreads::CreateThreads(unsigned threadCnt, unsigned(__stdcall *ThreadProc)(void *))
+bool RunableThreads::CreateThreads(unsigned threadCnt, unsigned(__stdcall *ExtThreadProc)(void *))
 {
     REFLIB_ASSERT_RETURN_VAL_IF_FAILED(threadCnt <= MAXIMUM_WAIT_OBJECTS,
         "Maxium thread count cannot exceed MAXIMUM_WAIT_OBJECTS", false);
@@ -56,7 +56,7 @@ bool RunableThreads::CreateThreads(unsigned threadCnt, unsigned(__stdcall *Threa
     for (unsigned i = 0; i < threadCnt; ++i)
     {
         HANDLE hThread = reinterpret_cast<HANDLE>(
-            _beginthreadex(0, 0, ThreadProc, static_cast<void*>(this), CREATE_SUSPENDED, nullptr));
+            _beginthreadex(0, 0, ExtThreadProc, static_cast<void*>(this), CREATE_SUSPENDED, nullptr));
         if (hThread == 0)
         {
             DebugPrint("failed to create thread");

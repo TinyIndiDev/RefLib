@@ -66,15 +66,10 @@ std::weak_ptr<NetConnection> NetConnectionMgr::AllocNetCon()
 
     SafeLock::Owner owner(_conLock);
 
-    if (_freeCons.empty())
-    {
-        con = std::make_shared<NetConnection>(GetNextIndex(), 0);
-    }
-    else
-    {
-        con = _freeCons.front();
-        _freeCons.pop_front();
-    }
+    REFLIB_ASSERT_RETURN_VAL_IF_FAILED(!_freeCons.empty(), "Out of network connection.", con);
+
+    con = _freeCons.front();
+    _freeCons.pop_front();
 
     if (con.get())
     {

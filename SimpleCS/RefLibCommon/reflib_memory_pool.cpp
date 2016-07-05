@@ -2,8 +2,6 @@
 
 #include "reflib_memory_pool.h"
 
-#include <heapapi.h>
-
 namespace RefLib
 {
 

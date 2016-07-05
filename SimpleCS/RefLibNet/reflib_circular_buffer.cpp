@@ -57,7 +57,7 @@ bool CircularBuffer::PutData(const char *data, unsigned int len)
     {
         unsigned int extendSize = MAX_PACKET_SIZE * ((len - room_size) / MAX_PACKET_SIZE + 1);
         extendSize = (std::min)(extendSize, MAX_SOCKET_BUFFER_SIZE - _bufSize);
-        REFLIB_ASSERT_RETURN_VAL_IF_FAILED(len >= room_size + extendSize, 
+        REFLIB_ASSERT_RETURN_VAL_IF_FAILED(len <= room_size + extendSize, 
             "Cannot put data: reached extend limit of circular buffer", false);
 
         SetCapacity(_bufSize + extendSize);
@@ -74,7 +74,7 @@ void CircularBuffer::PutDataWithoutResize(const char *data, unsigned int len)
     {
         memcpy(_buffer, data, len);
         _headPos = 0;
-        _tailPos = len % _bufSize;
+        _tailPos = len;
     }
     else if (_headPos < _tailPos && _tailPos + len >= _bufSize)
     {

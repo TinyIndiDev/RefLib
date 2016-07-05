@@ -31,7 +31,7 @@ int main()
     if (!netService->InitServer(maxConn, sysInfo.dwNumberOfProcessors))
         return -1;
 
-    for (int i = 0; i < 10; ++i)
+    for (int i = 0; i < maxConn; ++i)
     {
         auto obj = std::make_shared<GameNetObj>(netService);
         netService->AddListening(obj);

@@ -47,7 +47,6 @@ void MemoryBlock::Resize(uint32 len)
 
         std::swap(_data, data);
         _capacity = len;
-        _dataLen = len;
 
         delete[] data;
     }

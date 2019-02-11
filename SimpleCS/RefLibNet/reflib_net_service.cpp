@@ -6,7 +6,7 @@
 #include "reflib_net_connection_manager.h"
 #include "reflib_net_listener.h"
 #include "reflib_net_connector.h"
-#include "reflib_net_worker_server.h"
+#include "reflib_net_worker.h"
 #include "reflib_net_obj.h"
 #include "reflib_def.h"
 
@@ -50,7 +50,7 @@ bool NetService::InitServer(uint32 maxCnt, uint32 concurrency)
     if (!_netConnectionProxy->Initialize(maxCnt))
         return false;
 
-    _netWorker = std::make_unique<NetWorkerServer>(this);
+    _netWorker = std::make_unique<NetWorker>(this);
     if (!_netWorker->Initialize(concurrency))
         return false;
 
@@ -79,7 +79,7 @@ bool NetService::InitClient(uint32 maxCnt, uint32 concurrency)
     if (!_netConnectionProxy->Initialize(maxCnt))
         return false;
 
-    _netWorker = std::make_unique<NetWorkerServer>(this);
+    _netWorker = std::make_unique<NetWorker>(this);
     if (!_netWorker->Initialize(concurrency))
         return false;
 
@@ -99,7 +99,7 @@ bool NetService::AddListening(std::weak_ptr<NetObj> obj)
         return false;
     }
 
-    return RegisterToListener(obj);
+    return RegisterNetObj(obj);
 }
 
 void NetService::StartListen(unsigned port)
@@ -121,36 +121,13 @@ bool NetService::Connect(const std::string& ipStr, uint32 port, std::weak_ptr<Ne
         return false;
     }
 
-    if (!RegisterToConnector(obj))
+    if (!RegisterNetObj(obj))
         return false;
 
     return _netConnectionProxy->Connect(ipStr, port, obj);
 }
 
-bool NetService::RegisterToListener(std::weak_ptr<NetObj> obj)
-{
-    auto p = obj.lock();
-    if (!p) return false;
-
-    auto con = _netConnectionProxy->RegisterCon().lock();
-    if (!con) return false;
-
-    if (p->Initialize(con))
-    {
-        con->RegisterParent(p);
-
-        SafeLock::Owner lock(_freeLock);
-
-        uint32 slot = static_cast<uint32>(_freeObjs.size());
-        _freeObjs.emplace(slot, p);
-
-        return true;
-    }
-
-    return false;
-}
-
-bool NetService::RegisterToConnector(std::weak_ptr<NetObj> obj)
+bool NetService::RegisterNetObj(std::weak_ptr<NetObj> obj)
 {
     auto p = obj.lock();
     if (!p) return false;
@@ -236,7 +213,7 @@ void NetService::Run()
 
 void NetService::Shutdown()
 {
-    DebugPrint("Shutdown NetService.");
+    DebugPrint("--Shutdown NetService--");
 
     if (_netConnectionProxy)
     {
@@ -253,7 +230,7 @@ void NetService::OnTerminated(NetServiceChildType childType)
     {
     case NET_CTYPE_LISTENER:
     case NET_CTYPE_CONNECTOR:
-        DebugPrint("Shutdown NetWorkerServer.");
+        DebugPrint("Shutdown NetWorkers");
         _netWorker->Deactivate();
         _netWorker->Join();
         break;

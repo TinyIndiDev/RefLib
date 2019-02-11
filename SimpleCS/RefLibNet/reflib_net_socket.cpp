@@ -5,7 +5,7 @@
 #include "reflib_net_overlapped.h"
 #include "reflib_net_listener.h"
 #include "reflib_memory_pool.h"
-#include "reflib_packet_obj.h"
+#include "reflib_packet_header_obj.h"
 
 namespace RefLib
 {
@@ -107,7 +107,7 @@ bool NetSocket::PostRecv()
 
 void NetSocket::Send(char* data, uint16 dataLen)
 {
-    PacketObj packet;
+    PacketHeaderObj packet;
     packet.SetHeader(dataLen);
 
     MemoryBlock* buffer = g_memoryPool.GetBuffer(dataLen + PACKET_HEADER_SIZE);
@@ -142,7 +142,7 @@ void NetSocket::PrepareSend()
 bool NetSocket::PostSend()
 {
     int status = _netStatus.load();
-    int expected = status | NET_STATUS_CONNECTED & NET_STATUS_RECV_PENDING;
+    int expected = status | NET_STATUS_CONNECTED & NET_STATUS_RECV_PENDING & (!NET_STATUS_SEND_PENDING);
     int desired = expected | NET_STATUS_SEND_PENDING;
 
     if (!_netStatus.compare_exchange_strong(expected, desired))
@@ -311,7 +311,7 @@ void NetSocket::OnRecvData(const char* data, int dataLen)
 
 NetSocket::ePACKET_EXTRACT_RESULT NetSocket::ExtractPakcetData(MemoryBlock*& buffer)
 {
-    PacketObj packetObj;
+    PacketHeaderObj packetObj;
 
     SafeLock::Owner guard(_recvLock);
 
@@ -328,7 +328,7 @@ NetSocket::ePACKET_EXTRACT_RESULT NetSocket::ExtractPakcetData(MemoryBlock*& buf
         return PER_ERROR;
     }
 
-    if (packetObj.IsValidContentLength())
+    if (!packetObj.IsValidContentLength())
     {
         DebugPrint("Invalid packet conetnt length");
         buffer = nullptr;

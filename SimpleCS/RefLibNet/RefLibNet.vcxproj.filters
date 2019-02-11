@@ -69,12 +69,6 @@
     <ClInclude Include="reflib_net_util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="reflib_net_worker_server.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="reflib_packet_obj.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="reflib_net_service.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -85,6 +79,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="reflib_net_connection_proxy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="reflib_packet_header_obj.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="reflib_net_worker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -125,9 +125,6 @@
     <ClCompile Include="reflib_net_util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="reflib_net_worker_server.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="reflib_net_service.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -138,6 +135,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="reflib_net_connection_proxy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="reflib_net_worker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

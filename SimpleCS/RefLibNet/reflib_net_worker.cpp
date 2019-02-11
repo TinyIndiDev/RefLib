@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#include "reflib_net_worker_server.h"
+#include "reflib_net_worker.h"
 #include "reflib_net_socket.h"
 #include "reflib_net_service.h"
 #include "reflib_net_api.h"
@@ -9,13 +9,13 @@
 namespace RefLib
 {
 
-NetWorkerServer::NetWorkerServer(NetService* container)
+NetWorker::NetWorker(NetService* container)
     : _comPort(INVALID_HANDLE_VALUE)
     , _container(container)
 {
 }
 
-bool NetWorkerServer::Initialize(unsigned int concurrency)
+bool NetWorker::Initialize(unsigned int concurrency)
 {
     _comPort = g_network.GetCompletionPort();
     if (_comPort == INVALID_HANDLE_VALUE)
@@ -33,7 +33,7 @@ bool NetWorkerServer::Initialize(unsigned int concurrency)
     return true;
 }
 
-void NetWorkerServer::Run()
+void NetWorker::Run()
 {
     NetSocketBase* sockObj = nullptr;
     OVERLAPPED* lpOverlapped = nullptr;
@@ -61,7 +61,7 @@ void NetWorkerServer::Run()
     HandleIO(sockObj, lpOverlapped, bytesTransfered, error);
 }
 
-void NetWorkerServer::HandleIO(NetSocketBase* sockObj, OVERLAPPED* lpOverlapped, DWORD bytesTransfered, int error)
+void NetWorker::HandleIO(NetSocketBase* sockObj, OVERLAPPED* lpOverlapped, DWORD bytesTransfered, int error)
 {
     REFLIB_ASSERT_RETURN_IF_FAILED(sockObj, "NetSocket is null");
 
@@ -83,7 +83,7 @@ void NetWorkerServer::HandleIO(NetSocketBase* sockObj, OVERLAPPED* lpOverlapped,
     }
 }
 
-void NetWorkerServer::OnDeactivated()
+void NetWorker::OnDeactivated()
 {
     if (_container)
         _container->OnTerminated(NET_CTYPE_NETWORKER);

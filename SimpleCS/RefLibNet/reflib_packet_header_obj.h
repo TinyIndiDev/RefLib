@@ -7,10 +7,10 @@ namespace RefLib
 {
 
 #define PACKET_ENVELOP_TAG      0xffaa
-#define PACKET_HEADER_SIZE      PacketObj::GetHeaderSize()
-#define MAX_PACKET_CONTENT_SIZE ((1024)*(64) - PACKET_HEADER_SIZE)
+#define PACKET_HEADER_SIZE      PacketHeaderObj::GetHeaderSize()
+#define MAX_PACKET_CONTENT_SIZE (MAX_PACKET_SIZE - PACKET_HEADER_SIZE)
 
-class PacketObj
+class PacketHeaderObj
 {
 public:
     static uint16 GetHeaderSize()
@@ -31,13 +31,7 @@ public:
 
     bool IsValidContentLength() const
     {
-        if (header.info.contentLen + PACKET_HEADER_SIZE > header.info.contentLen)
-            return false;
-
-        if (header.info.contentLen > MAX_PACKET_CONTENT_SIZE)
-            return false;
-
-        return true;
+		return (header.info.contentLen <= MAX_PACKET_CONTENT_SIZE);
     }
 
     uint16 GetContentLen() const
@@ -57,7 +51,6 @@ public:
         char blob[4];
     };
     Header header;
-    char*  conetnt;
 };
 
 }

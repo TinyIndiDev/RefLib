@@ -12,7 +12,7 @@ namespace RefLib
 
 class NetObj;
 class NetConnectionProxy;
-class NetWorkerServer;
+class NetWorker;
 
 class NetService
     : public RefLib::RunableThreads
@@ -38,8 +38,7 @@ public:
     void OnTerminated(NetServiceChildType childType);
 
 protected:
-    bool RegisterToListener(std::weak_ptr<NetObj> obj);
-    bool RegisterToConnector(std::weak_ptr<NetObj> obj);
+    bool RegisterNetObj(std::weak_ptr<NetObj> obj);
 
     // run by thread
     virtual void Run() override;
@@ -52,7 +51,7 @@ private:
     FREE_NET_OBJS _freeObjs;
 
     std::unique_ptr<NetConnectionProxy> _netConnectionProxy;
-    std::unique_ptr<NetWorkerServer> _netWorker;
+    std::unique_ptr<NetWorker> _netWorker;
 
     uint32 _maxCnt;
     HANDLE _comPort;

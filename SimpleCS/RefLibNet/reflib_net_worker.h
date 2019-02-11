@@ -11,13 +11,13 @@ struct NetCompletionOP;
 class NetSocketBase;
 class NetService;
 
-class NetWorkerServer
+class NetWorker
     : public RunableThreads
     , public NetProfiler
 {
 public:
-    NetWorkerServer(NetService* container);
-    virtual ~NetWorkerServer() {}
+	NetWorker(NetService* container);
+    virtual ~NetWorker() {}
 
     virtual bool Initialize(unsigned int concurrency);
 

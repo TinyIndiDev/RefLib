@@ -37,10 +37,10 @@ void NetProfiler::PrintStatistics()
 
     // Calculate average bytes per second
     uint64 bps = _bytesSent / elapsed;
-    DebugPrint("Average BPS sent: %llu [%llu]", bps, _bytesSent);
+    DebugPrint("Average BPS sent: %llu [%llu]", bps, _bytesSent.load());
 
     bps = _bytesRead / elapsed;
-    DebugPrint("Average BPS read: %llu [%llu]", bps, _bytesRead);
+    DebugPrint("Average BPS read: %llu [%llu]", bps, _bytesRead.load());
 
     elapsed = (tick > _startTimeLast) ? (tick - _startTimeLast) / 1000 : 0;
     if (elapsed == 0)

@@ -42,18 +42,31 @@ void NetSocketBase::Disconnect(NetCloseType closer)
 
 void NetSocketBase::OnConnected()
 {
-    _netStatus.fetch_or(NET_STATUS_CONNECTED);
+	_netStatus.fetch_and(~NET_STATUS_CONN_PENDING);
+	_netStatus.fetch_or(NET_STATUS_CONNECTED);
+	DebugPrint("OnConnected: %d", _socket.load());
 }
 
 void NetSocketBase::OnDisconnected()
 {
-    _socket.exchange(INVALID_SOCKET);
+	if (_netStatus.load() == NET_STATUS_CONN_PENDING)
+	{
+		DebugPrint("Cannot connect");
+	}
+	else
+	{
+		_netStatus.fetch_and((~NET_STATUS_CONNECTED) & (~NET_STATUS_RECV_PENDING) & (~NET_STATUS_CLOSE_PENDING));
+		if (_netStatus != 0)
+		{
+			DebugPrint("OnDisconnected: closed without clearing pending status 0x%x", _netStatus.load());
+		}
+		else
+		{
+			DebugPrint("OnDisconnected: %d", _socket.load());
+		}
+	}
 
-    _netStatus.fetch_and((~NET_STATUS_CONNECTED) & (~NET_STATUS_CLOSE_PENDING));
-    if (_netStatus != 0)
-    {
-        DebugPrint("OnDisconnected: closed without clearing pending status 0x%x", _netStatus);
-    }
+	_socket.exchange(INVALID_SOCKET);
 }
 
 } // namespace RefLib)

@@ -31,7 +31,7 @@ public:
 private:
     uint32 GetNextIndex();
 
-    typedef std::deque<std::shared_ptr<NetConnection>> FREE_CONNS;
+    typedef std::map<uint32, std::shared_ptr<NetConnection>> FREE_CONNS;
     typedef std::map<uint64, std::shared_ptr<NetConnection>> NET_CONNS;
 
     FREE_CONNS  _freeCons;

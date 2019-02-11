@@ -4,8 +4,8 @@ PURPOSE:
 
 OVERVIEW:
 - This library is simple but very close to the skeleton libraries used in the commercial game.
-- NetService manages network connections and one of listener and connector.
-- NetService has two groups of threads. One is for network and the other is for receive function of game object which is define by application programmer.
+- NetService manages network connections and one listener or connector.
+- NetService has two groups of threads. One is for network and the other is for the game logic.
 
 ![](https://github.com/goopymoon/RefLib/blob/master/Doc/RefLib.jpg)
 

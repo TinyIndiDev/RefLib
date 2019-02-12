@@ -13,6 +13,8 @@ namespace RefLib
 class NetObj;
 class NetConnectionProxy;
 
+///////////////////////////////////////////////////////////////////
+// NetServicec
 class NetService
     : public RefLib::RunableThreads
 {
@@ -20,13 +22,7 @@ public:
     NetService();
     virtual ~NetService();
 
-    bool InitServer(uint32 maxCnt, uint32 concurrency);
-    bool InitClient(uint32 maxCnt, uint32 concurrency);
-    void StartListen(unsigned port);
     void Shutdown();
-
-    bool AddListening(std::weak_ptr<NetObj> obj);
-    bool Connect(const std::string& ipStr, uint32 port, std::weak_ptr<NetObj> obj);
 
     HANDLE GetCompletionPort() const { return _comPort; }
     std::weak_ptr<NetObj> GetNetObj(const CompositId& id);
@@ -37,7 +33,16 @@ public:
     void OnTerminated();
 
 protected:
-    bool RegisterNetObj(std::weak_ptr<NetObj> obj);
+	// Server only
+	bool InitServer(uint32 maxCnt, uint32 concurrency);
+	virtual bool AddListeningObj(std::weak_ptr<NetObj> obj);
+	virtual void StartListen(unsigned port);
+
+	// Client only
+	bool InitClient(uint32 maxCnt, uint32 concurrency);
+	virtual bool Connect(const std::string& ipStr, uint32 port, std::weak_ptr<NetObj> obj);
+
+	bool RegisterNetObj(std::weak_ptr<NetObj> obj);
 
     // run by thread
     virtual void Run() override;
@@ -55,6 +60,25 @@ private:
     HANDLE _comPort;
 
     SafeLock _freeLock;
+};
+
+///////////////////////////////////////////////////////////////////
+// NetServerServicec
+class NetServerService : public NetService
+{
+public:
+	bool Initialize(uint32 maxCnt, uint32 concurrency);
+	virtual bool AddListeningObj(std::weak_ptr<NetObj> obj) override;
+	virtual void StartListen(unsigned port) override;
+};
+
+///////////////////////////////////////////////////////////////////
+// NetClientServicec
+class NetClientService : public NetService
+{
+public:
+	bool Initialize(uint32 maxCnt, uint32 concurrency);
+	virtual bool Connect(const std::string& ipStr, uint32 port, std::weak_ptr<NetObj> obj) override;
 };
 
 } // namespace RefLib

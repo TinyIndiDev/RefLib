@@ -5,12 +5,21 @@
 
 #include <iostream>
 #include "reflib_net_service.h"
-#include "reflib_net_api.h"
 #include "game_net_obj.h"
 
 #pragma comment(lib,"WS2_32")
 
 using namespace RefLib;
+
+SYSTEM_INFO getSystemInfo()
+{
+	SYSTEM_INFO sysInfo;
+	GetSystemInfo(&sysInfo);
+	if (sysInfo.dwNumberOfProcessors > NETWORK_MAX_COMPLETION_THREAD_COUNT)
+		sysInfo.dwNumberOfProcessors = NETWORK_MAX_COMPLETION_THREAD_COUNT;
+
+	return sysInfo;
+}
 
 int main()
 {
@@ -19,22 +28,17 @@ int main()
     unsigned port = 5150;
     unsigned maxConn = 3000;
 
-    SYSTEM_INFO sysInfo;
-    GetSystemInfo(&sysInfo);
-    if (sysInfo.dwNumberOfProcessors > NETWORK_MAX_COMPLETION_THREAD_COUNT)
-        sysInfo.dwNumberOfProcessors = NETWORK_MAX_COMPLETION_THREAD_COUNT;
-
-    if (!g_network.Initialize())
-        return -1;
-
-    auto netService = std::make_shared<NetService>();
-    if (!netService->InitServer(maxConn, sysInfo.dwNumberOfProcessors))
+    auto netService = std::make_shared<NetServerService>();
+    if (!netService->Initialize(maxConn, getSystemInfo().dwNumberOfProcessors))
         return -1;
 
     for (size_t i = 0; i < maxConn; ++i)
     {
         auto obj = std::make_shared<GameNetObj>(netService);
-        netService->AddListening(obj);
+		if (!netService->AddListeningObj(obj))
+		{
+			return -1;
+		}
     }
 
     netService->StartListen(port);

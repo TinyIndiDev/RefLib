@@ -9,9 +9,13 @@
 #include "reflib_net_worker.h"
 #include "reflib_net_obj.h"
 #include "reflib_def.h"
+#include "reflib_net_api.h"
 
 namespace RefLib
 {
+
+///////////////////////////////////////////////////////////////////
+// NetService
 
 NetService::NetService()
     : _maxCnt(0)
@@ -30,6 +34,9 @@ NetService::~NetService()
 
 bool NetService::InitServer(uint32 maxCnt, uint32 concurrency)
 {
+	if (!g_network.Initialize())
+		return false;
+
     if (_netConnectionProxy.get())
     {
         DebugPrint("Already initialized");
@@ -55,7 +62,10 @@ bool NetService::InitServer(uint32 maxCnt, uint32 concurrency)
 
 bool NetService::InitClient(uint32 maxCnt, uint32 concurrency)
 {
-    if (_netConnectionProxy.get())
+	if (!g_network.Initialize())
+		return false;
+
+	if (_netConnectionProxy.get())
     {
         DebugPrint("Already initialized");
         return false;
@@ -83,7 +93,7 @@ bool NetService::InitClient(uint32 maxCnt, uint32 concurrency)
     return true;
 }
 
-bool NetService::AddListening(std::weak_ptr<NetObj> obj)
+bool NetService::AddListeningObj(std::weak_ptr<NetObj> obj)
 {
     if (_netConnectionProxy->GetChildType() != NET_CTYPE_LISTENER)
     {
@@ -220,5 +230,36 @@ void NetService::OnTerminated()
 {
     Deactivate();
 }
+
+///////////////////////////////////////////////////////////////////
+// NetServerService
+
+bool NetServerService::Initialize(uint32 maxCnt, uint32 concurrency)
+{
+	return InitServer(maxCnt, concurrency);
+}
+
+bool NetServerService::AddListeningObj(std::weak_ptr<NetObj> obj)
+{
+	return NetService::AddListeningObj(obj);
+}
+
+void NetServerService::StartListen(unsigned port)
+{
+	return NetService::StartListen(port);
+}
+
+///////////////////////////////////////////////////////////////////
+// NetClientService
+
+bool NetClientService::Initialize(uint32 maxCnt, uint32 concurrency)
+{
+	return InitClient(maxCnt, concurrency);
+}
+
+bool NetClientService::Connect(const std::string& ipStr, uint32 port, std::weak_ptr<NetObj> obj)
+{
+	return NetService::Connect(ipStr, port, obj);
+};
 
 } //namespace RefLib

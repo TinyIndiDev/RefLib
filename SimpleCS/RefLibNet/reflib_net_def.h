@@ -30,6 +30,5 @@ enum NetServiceChildType
     NET_CTYPE_NA,
     NET_CTYPE_LISTENER,
     NET_CTYPE_CONNECTOR,
-    NET_CTYPE_NETWORKER,
 };
 

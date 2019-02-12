@@ -10,7 +10,8 @@ namespace RefLib
 {
 
 NetConnectionProxy::NetConnectionProxy(NetService* container)
-    : _container(container)
+    : NetWorker(container)
+	, _container(container)
     , _isClosed(true)
 {
     _conMgr = std::make_shared<NetConnectionMgr>();
@@ -20,10 +21,14 @@ NetConnectionProxy::~NetConnectionProxy()
 {
 }
 
-bool NetConnectionProxy::Initialize(unsigned maxCnt)
+bool NetConnectionProxy::Initialize(unsigned maxCnt, uint32 concurrency)
 {
     _isClosed = false;
-    return _conMgr->Initialize(maxCnt);
+	if (!_conMgr->Initialize(maxCnt))
+	{
+		return false;
+	}
+	return NetWorker::Initialize(concurrency);
 }
 
 std::weak_ptr<NetConnection> NetConnectionProxy::RegisterCon()
@@ -75,8 +80,10 @@ void NetConnectionProxy::Shutdown()
 
 void NetConnectionProxy::OnTerminated()
 {
-    if (_container)
-        _container->OnTerminated(GetChildType());
+	DebugPrint("Shutdown NetWorkers");
+
+	Deactivate();
+	Join();
 }
 
 } // namespace RefLib

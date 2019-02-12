@@ -2,6 +2,7 @@
 
 #include <memory>
 #include "reflib_composit_id.h"
+#include "reflib_net_worker.h"
 
 namespace RefLib
 {
@@ -11,13 +12,13 @@ class NetConnection;
 class NetConnectionMgr;
 class NetService;
 
-class NetConnectionProxy
+class NetConnectionProxy : public NetWorker
 {
 public:
     NetConnectionProxy(NetService* container);
     virtual ~NetConnectionProxy();
 
-    bool Initialize(unsigned maxCnt);
+    bool Initialize(unsigned maxCnt, uint32 concurrency);
 
     std::weak_ptr<NetConnection> RegisterCon();
     std::weak_ptr<NetConnection> AllocNetCon(SOCKET sock);

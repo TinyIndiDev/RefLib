@@ -47,11 +47,7 @@ bool NetService::InitServer(uint32 maxCnt, uint32 concurrency)
     _objs.resize(maxCnt);
 
     _netConnectionProxy = std::make_unique<NetListener>(this);
-    if (!_netConnectionProxy->Initialize(maxCnt))
-        return false;
-
-    _netWorker = std::make_unique<NetWorker>(this);
-    if (!_netWorker->Initialize(concurrency))
+    if (!_netConnectionProxy->Initialize(maxCnt, concurrency))
         return false;
 
     return CreateThreads(concurrency);
@@ -76,11 +72,7 @@ bool NetService::InitClient(uint32 maxCnt, uint32 concurrency)
     _objs.resize(maxCnt);
 
     _netConnectionProxy = std::make_unique<NetConnector>(this);
-    if (!_netConnectionProxy->Initialize(maxCnt))
-        return false;
-
-    _netWorker = std::make_unique<NetWorker>(this);
-    if (!_netWorker->Initialize(concurrency))
+    if (!_netConnectionProxy->Initialize(maxCnt, concurrency))
         return false;
 
     if (!CreateThreads(concurrency))
@@ -224,22 +216,9 @@ void NetService::Shutdown()
     Join();
 }
 
-void NetService::OnTerminated(NetServiceChildType childType)
+void NetService::OnTerminated()
 {
-    switch (childType)
-    {
-    case NET_CTYPE_LISTENER:
-    case NET_CTYPE_CONNECTOR:
-        DebugPrint("Shutdown NetWorkers");
-        _netWorker->Deactivate();
-        _netWorker->Join();
-        break;
-    case NET_CTYPE_NETWORKER:
-        Deactivate();
-        break;
-    default:
-        break;
-    }
+    Deactivate();
 }
 
 } //namespace RefLib

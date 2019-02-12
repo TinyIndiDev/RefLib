@@ -86,7 +86,7 @@ void NetWorker::HandleIO(NetSocketBase* sockObj, OVERLAPPED* lpOverlapped, DWORD
 void NetWorker::OnDeactivated()
 {
     if (_container)
-        _container->OnTerminated(NET_CTYPE_NETWORKER);
+        _container->OnTerminated();
 }
 
 } // RefLib

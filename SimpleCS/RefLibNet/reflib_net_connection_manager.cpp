@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "reflib_net_connection_manager.h"
 #include "reflib_net_connection.h"
+#include "reflib_composit_id.h"
 
 namespace RefLib
 {
@@ -17,11 +18,6 @@ NetConnectionMgr::~NetConnectionMgr()
 
 bool NetConnectionMgr::Initialize(unsigned reserve)
 {
-	for (size_t i = 0; i < reserve; ++i)
-	{
-		auto nextIndex = GetNextIndex();
-		_freeCons.emplace(nextIndex, std::make_shared<NetConnection>(nextIndex, 0));
-	}
 	_capacity = reserve;
 
     return true;
@@ -42,7 +38,7 @@ void NetConnectionMgr::Shutdown()
 uint32 NetConnectionMgr::GetNextIndex()
 {
     uint32 prev = _lastIndex.fetch_add(1);
-    return (prev + 1);
+	return CompositId::ClampIncId(prev);
 }
 
 bool NetConnectionMgr::IsEmpty()
@@ -54,14 +50,16 @@ bool NetConnectionMgr::IsEmpty()
 
 std::weak_ptr<NetConnection> NetConnectionMgr::RegisterCon()
 {
+	if (_capacity <= _lastIndex)
+		return std::weak_ptr<NetConnection>();
+
 	SafeLock::Owner owner(_conLock);
 
-	if (_freeCons.size() == 0)
-	{
-		return std::weak_ptr<NetConnection>();
-	}
+	uint32 slot = GetNextIndex();
+	auto p = std::make_shared<NetConnection>(slot, 0);
+	_freeCons.emplace(slot, p);
 
-	return _freeCons.begin()->second;
+	return p;
 }
 
 std::weak_ptr<NetConnection> NetConnectionMgr::AllocNetCon()

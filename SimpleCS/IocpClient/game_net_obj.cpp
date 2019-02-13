@@ -16,6 +16,8 @@ GameNetObj::~GameNetObj()
 
 void GameNetObj::OnConnected()
 {
+	NetObj::OnConnected();
+
     std::cout << "GameNetObj::OnConnected" << std::endl;
 
     std::cout << "Sending packet" << std::endl;
@@ -31,7 +33,7 @@ void GameNetObj::OnConnected()
 
 void GameNetObj::OnDisconnected()
 {
-
+	NetObj::OnDisconnected();
 }
 
 bool GameNetObj::OnRecvPacket()

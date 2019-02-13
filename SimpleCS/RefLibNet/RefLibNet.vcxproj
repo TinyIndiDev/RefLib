@@ -186,6 +186,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="reflib_circular_buffer.h" />
+    <ClInclude Include="reflib_netio_buffer.h" />
     <ClInclude Include="reflib_net_connection_proxy.h" />
     <ClInclude Include="reflib_net_connector.h" />
     <ClInclude Include="reflib_net_obj.h" />
@@ -198,7 +199,6 @@
     <ClInclude Include="reflib_net_def.h" />
     <ClInclude Include="reflib_net_include.h" />
     <ClInclude Include="reflib_net_listener.h" />
-    <ClInclude Include="reflib_net_overlapped.h" />
     <ClInclude Include="reflib_net_profiler.h" />
     <ClInclude Include="reflib_net_resolve.h" />
     <ClInclude Include="reflib_net_socket.h" />
@@ -226,6 +226,7 @@
     <ClCompile Include="reflib_net_socket_base.cpp" />
     <ClCompile Include="reflib_net_util.cpp" />
     <ClCompile Include="reflib_net_worker.cpp" />
+    <ClCompile Include="reflib_netio_buffer.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

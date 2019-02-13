@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <memory>
-#include "reflib_net_overlapped.h"
+#include "reflib_net_completion.h"
 
 #define SOCKETADDR_BUFFER_SIZE  (sizeof(SOCKADDR_STORAGE) + 16)
 

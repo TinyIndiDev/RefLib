@@ -2,29 +2,13 @@
 
 #include <list>
 #include "reflib_net_socket.h"
-#include "reflib_net_overlapped.h"
+#include "reflib_netio_buffer.h"
 #include "reflib_net_listener.h"
 #include "reflib_memory_pool.h"
 #include "reflib_packet_header_obj.h"
 
 namespace RefLib
 {
-
-/////////////////////////////////////////////////////////////////////
-// NetIoBuffer
-
-NetIoBuffer::~NetIoBuffer()
-{
-    MemoryBlock* buffer;
-
-    while (buffer = PopData())
-    {
-        g_memoryPool.FreeBuffer(buffer);
-    }
-}
-
-/////////////////////////////////////////////////////////////////////
-// NetSocket
 
 NetSocket::NetSocket()
 {
@@ -70,8 +54,7 @@ bool NetSocket::PostRecv()
     NetIoBuffer* recvOP = new NetIoBuffer(NetCompletionOP::OP_READ);
     recvOP->Reset(GetSocket());
 
-    MemoryBlock* buffer = g_memoryPool.GetBuffer(MAX_PACKET_SIZE);
-    recvOP->PushData(buffer);
+    MemoryBlock* buffer = recvOP->Alloc(MAX_PACKET_SIZE);
 
     WSABUF wbuf;
     wbuf.buf = buffer->GetData();

@@ -7,8 +7,8 @@ namespace RefLib
 {
 
 NetConnectionMgr::NetConnectionMgr()
-    : _capacity(NETWORK_MAX_CONN)
-    , _lastIndex(0)
+	: _capacity(NETWORK_MAX_CONN)
+	, _isActive(false)
 {
 }
 
@@ -16,103 +16,119 @@ NetConnectionMgr::~NetConnectionMgr()
 {
 }
 
-bool NetConnectionMgr::Initialize(unsigned reserve)
+bool NetConnectionMgr::Initialize(uint32 capacity)
 {
-	_capacity = reserve;
+	SafeLock::Owner owner(_conLock);
+
+	for (uint32 i = 0; i < capacity; ++i)
+	{
+		_freeCons.emplace(i, std::make_shared<NetConnection>(i, 0));
+	}
+
+	_capacity = capacity;
+	_isActive = true;
 
     return true;
 }
 
 void NetConnectionMgr::Shutdown()
 {
+	_isActive = false;
+
     SafeLock::Owner owner(_conLock);
 
-    for (auto element : _netCons)
-    {
-        auto con = element.second;
+	for (auto& elem : _busyCons)
+	{
+		auto con = elem.second;
         if (con.get())
             con->Disconnect(NET_CTYPE_SHUTDOWN);
     }
-}
-
-uint32 NetConnectionMgr::GetNextIndex()
-{
-    uint32 prev = _lastIndex.fetch_add(1);
-	return CompositId::ClampIncId(prev);
 }
 
 bool NetConnectionMgr::IsEmpty()
 {
     SafeLock::Owner owner(_conLock);
     
-    return _netCons.empty();
+	return (_freeCons.size() + _pendingCons.size() == _capacity);
 }
 
 std::weak_ptr<NetConnection> NetConnectionMgr::RegisterCon()
 {
-	if (_capacity <= _lastIndex)
-		return std::weak_ptr<NetConnection>();
-
 	SafeLock::Owner owner(_conLock);
 
-	uint32 slot = GetNextIndex();
-	auto p = std::make_shared<NetConnection>(slot, 0);
-	_freeCons.emplace(slot, p);
+	if (!_isActive || _freeCons.empty())
+	{
+		return std::weak_ptr<NetConnection>();
+	}
 
-	return p;
+	auto it = _freeCons.begin();
+	auto con = it->second;
+	_freeCons.erase(it);
+	_pendingCons.emplace(con->GetCompId().GetSlotId(), con);
+
+	return con;
 }
 
 std::weak_ptr<NetConnection> NetConnectionMgr::AllocNetCon()
 {
     std::shared_ptr<NetConnection> con;
 
+	if (!_isActive) 
+	{
+		return con;
+	}
+
     SafeLock::Owner owner(_conLock);
 
-    REFLIB_ASSERT_RETURN_VAL_IF_FAILED(!_freeCons.empty(), "Out of network connection.", con);
+    REFLIB_ASSERT_RETURN_VAL_IF_FAILED(!_pendingCons.empty(), "Out of network connection.", con);
 
-	auto it = _freeCons.begin();
+	auto it = _pendingCons.begin();
 	con = it->second;
-	_freeCons.erase(it);
+	_pendingCons.erase(it);
 
     con->IncSalt();
-    _netCons.insert(std::pair<uint32, std::shared_ptr<NetConnection>>(con->GetCompId().GetSlotId(), con));
+	_busyCons.emplace(con->GetCompId().GetIndex(), con);
 
     return con;
 }
 
-std::weak_ptr<NetConnection> NetConnectionMgr::AllocNetCon(const CompositId& compId)
+std::weak_ptr<NetConnection> NetConnectionMgr::AllocNetCon(CompositId compId)
 {
-    std::shared_ptr<NetConnection> con;
+	std::shared_ptr<NetConnection> con;
 
-    SafeLock::Owner owner(_conLock);
+	SafeLock::Owner owner(_conLock);
 
-	auto it = _freeCons.find(compId.GetSlotId());
-    if (it == _freeCons.end())
-        return con;
+	if (!_isActive)
+	{
+		return con;
+	}
+
+	auto it = _pendingCons.find(compId.GetSlotId());
+	if (it == _pendingCons.end())
+	{
+		return con;
+	}
 
 	con = it->second;
-	_freeCons.erase(it);
+	_pendingCons.erase(it);
 
-    con->IncSalt();
-    _netCons.insert(std::pair<uint32, std::shared_ptr<NetConnection>>(con->GetCompId().GetSlotId(), con));
+	con->IncSalt();
+	_busyCons.emplace(con->GetCompId().GetIndex(), con);
 
-    return con;
+	return con;
 }
 
-bool NetConnectionMgr::FreeNetCon(const CompositId& compId)
+void NetConnectionMgr::FreeNetCon(CompositId compId)
 {
-    SafeLock::Owner owner(_conLock);
+	SafeLock::Owner owner(_conLock);
 
-    auto it = _netCons.find(compId.GetSlotId());
-    if (it != _netCons.end())
-    {
-		_freeCons[compId.GetSlotId()] = it->second;
-		_netCons.erase(it);
-
-        return true;
-    }
-
-    return false;
+	auto it = _busyCons.find(compId.GetIndex());
+	if (it != _busyCons.end())
+	{
+		auto con = it->second;
+		_busyCons.erase(it);
+		_freeCons.emplace(compId.GetSlotId(), con);
+	}
 }
 
 } // namespace RefLib

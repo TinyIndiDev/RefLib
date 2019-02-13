@@ -1,8 +1,6 @@
 #pragma once
 
 #include <concurrent_queue.h>
-#include <queue>
-#include "reflib_net_overlapped.h"
 #include "reflib_net_socket_base.h"
 #include "reflib_circular_buffer.h"
 #include "reflib_safelock.h"
@@ -11,33 +9,6 @@ namespace RefLib
 {
 
 class NetObj;
-
-class NetIoBuffer : public NetCompletionOP
-{
-public:
-    NetIoBuffer(NetOPType op) : NetCompletionOP(op) {}
-    ~NetIoBuffer();
-
-    void PushData(MemoryBlock* data) 
-    { 
-        _data.push(data);
-    }
-
-    MemoryBlock* PopData()
-    {
-        MemoryBlock* buffer = nullptr;
-
-        if (!_data.empty())
-        {
-            buffer = _data.front();
-            _data.pop();
-        }
-        return buffer;
-    }
-
-private:
-    std::queue<MemoryBlock*> _data;
-};
 
 class NetSocket : public NetSocketBase
 {

@@ -51,9 +51,6 @@
     <ClInclude Include="reflib_net_listener.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="reflib_net_overlapped.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="reflib_net_profiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -85,6 +82,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="reflib_net_worker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="reflib_netio_buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -138,6 +138,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="reflib_net_worker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="reflib_netio_buffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

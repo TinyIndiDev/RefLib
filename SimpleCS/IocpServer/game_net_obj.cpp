@@ -16,11 +16,12 @@ GameNetObj::~GameNetObj()
 
 void GameNetObj::OnConnected()
 {
+	NetObj::OnConnected();
 }
 
 void GameNetObj::OnDisconnected()
 {
-
+	NetObj::OnDisconnected();
 }
 
 bool GameNetObj::OnRecvPacket()
